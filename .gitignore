@@ -1,0 +1,29 @@
+# Local development only (never in production)
+*.log
+*.tmp
+*.pid
+*.lock
+*.sqlite
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Env files (may hold secrets)
+*.env
+*.env.local
+*.env.development.local
+*.env.test.local
+!.env.example
+
+# Editors
+.idea/
+.vscode/
+*.swp
+*~
+
+# Tests
+coverage/
+.nyc_output/

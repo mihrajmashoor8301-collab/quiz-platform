@@ -1,0 +1,10 @@
+{
+  "name": "quiz-platform",
+  "private": true,
+  "workspaces": ["backend", "frontend"],
+  "engines": {
+    "node": ">=18",
+    "npm": ">=9"
+  },
+  "installStrategy": "parents"
+}

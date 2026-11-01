@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-background: 240 240 244;
+    --color-foreground: 16 16 20;
+    --color-primary: 63 66 215;
+    --color-primary-foreground: 255 255 255;
+    --color-accent: 255 149 0;
+    --color-accent-foreground: 16 16 20;
+    --color-muted: 152 152 160;
+    --color-card: 255 255 255;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --color-background: 16 16 20;
+    --color-foreground: 255 255 255;
+    --color-muted: 152 152 160;
+    --color-card: 22 22 28;
+  }
+}
+
+@layer base {
+  * {
+    @apply antialiased;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
