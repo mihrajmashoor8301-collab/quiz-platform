@@ -1,7 +1,19 @@
 {
   "name": "quiz-platform",
   "private": true,
-  "workspaces": ["backend", "frontend"],
+  "type": "module",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=frontend",
+    "start": "node server.js",
+    "build": "npm run build --workspace=frontend",
+    "test": "vitest run",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
   "engines": {
     "node": ">=18",
     "npm": ">=9"

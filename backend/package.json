@@ -1,0 +1,46 @@
+{
+  "name": "quiz-platform-backend",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Room, question, submission and live-game backend for the personal live quiz platform.",
+  "exports": {
+    ".": "./src/index.js",
+    "./constants.js": "./src/constants.js",
+    "./logger.js": "./src/logger.js",
+    "./rate-limiter.js": "./src/rate-limiter.js",
+    "./db/init.js": "./src/db/init.js",
+    "./services/room.service.js": "./src/services/room.service.js",
+    "./services/question.service.js": "./src/services/question.service.js",
+    "./services/submission.service.js": "./src/services/submission.service.js",
+    "./services/live-game.js": "./src/services/live-game.js"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "db:init": "node src/db/init.js",
+    "db:push": "npm run db:init",
+    "lint": "eslint .",
+    "test": "VITE_NODE_TEST=1 vitest run",
+    "test:watch": "VITE_NODE_TEST=1 vitest",
+    "test:ci": "VITE_NODE_TEST=1 vitest run --coverage",
+    "typecheck": "tsc --noEmit --allowJs --checkJs false --target es2023 --module esnext --moduleResolution bundler src/index.js src/services/*.js src/db/*.js src/utils/*.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.48.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.0",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^7.2.0",
+    "pg": "^8.13.0",
+    "socket.io": "^4.8.0",
+    "socket.io-client": "^4.8.4",
+    "uuid": "^11.0.0",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.39.5",
+    "eslint-plugin-jest": "^28.10.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}

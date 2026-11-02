@@ -1,7 +1,12 @@
-const { execFileSync } = require("node:child_process");
+import fs from "node:fs";
+import path from "node:path";
 
-const version = execFileSync("cat", [path.join(__dirname, "..", "package.json")], {
-  encoding: "utf8",
-});
+export const getPackageInfo = () => {
+  const pkgPath = path.resolve(process.cwd(), "package.json");
+  if (fs.existsSync(pkgPath)) {
+    return JSON.parse(fs.readFileSync(pkgPath, "utf8"));
+  }
+  return { name: "quiz-platform-frontend", version: "0.1.0" };
+};
 
-console.log(JSON.stringify({ name: JSON.parse(version).name }, null, 2));
+export default getPackageInfo;

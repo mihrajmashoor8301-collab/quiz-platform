@@ -5,18 +5,30 @@
 *.lock
 *.sqlite
 
+# Database & local sockets
+pgdata/
+sockdir/
+logger-tmp/
+
 # Dependencies
 node_modules/
 
 # Build output
 dist/
+.next/
+out/
+*.tsbuildinfo
 
 # Env files (may hold secrets)
+.env
+.env.*
 *.env
 *.env.local
 *.env.development.local
 *.env.test.local
 !.env.example
+!backend/.env.example
+!frontend/.env.example
 
 # Editors
 .idea/
