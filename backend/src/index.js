@@ -1,4 +1,5 @@
 import { execSync } from "node:child_process";
+import os from "node:os";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -141,6 +142,27 @@ app.get("/health", (_req, res) => {
   res.json({ name: version, status: "ok" });
 });
 
+app.get("/network-info", (_req, res) => {
+  const ifaces = os.networkInterfaces();
+  const addresses = [];
+  for (const [name, list] of Object.entries(ifaces)) {
+    for (const iface of list) {
+      if (iface.family === "IPv4" && !iface.internal) {
+        const isVirtual = name.startsWith("docker") || name.startsWith("br-") || name.startsWith("veth");
+        addresses.push({ name, address: iface.address, isVirtual });
+      }
+    }
+  }
+  addresses.sort((a, b) => (a.isVirtual ? 1 : 0) - (b.isVirtual ? 1 : 0));
+  const primaryIp = addresses[0]?.address || "127.0.0.1";
+  res.json({
+    primaryIp,
+    addresses,
+    port: HTTP_PORT,
+    wifiUrl: `http://${primaryIp}:${HTTP_PORT}`,
+  });
+});
+
 app.post("/rooms", async (req, res) => {
   const hostId = uuidv4();
   const { title, maxParticipants } = req.body;
@@ -196,16 +218,25 @@ app.get("/rooms/:pin/questions", async (req, res) => {
 
 app.post("/rooms/:pin/questions", async (req, res) => {
   const { pin } = req.params;
-  const { type = "mcq", question, options = [], timeLimit = 30, correct = [] } = req.body;
+  const { type = "mcq", question, options = [], timeLimit = 30, correct = [], promptText: bodyPromptText } = req.body;
   const service = rooms.get(pin) || (await getRoomService(httpServer, pin));
   if (!service || !service.room) {
     return res.status(404).json({ error: "room not found" });
   }
-  if (!question) {
+  if (!question && !bodyPromptText) {
     return res.status(400).json({ error: "question is required" });
   }
 
-  const promptText = typeof question === "string" ? question : question?.text || "Question";
+  const promptText = bodyPromptText || (typeof question === "string" ? question : question?.text) || "Question";
+  if (type === "poll" && !promptText) {
+    return res.status(400).json({ error: "promptText is required for polls" });
+  }
+
+  const rawCorrect = Array.isArray(correct) ? correct.flat(Infinity) : [correct];
+  const cleanCorrect = rawCorrect
+    .filter((c) => c !== undefined && c !== null && String(c).trim().length > 0)
+    .map((c) => String(c).trim());
+
   const questionObj = {
     id: (quizQuestionsCount(pin) || 0) + 1,
     roomId: service.room.id,
@@ -213,9 +244,9 @@ app.post("/rooms/:pin/questions", async (req, res) => {
     type,
     text: promptText,
     question: { text: promptText },
-    options: Array.isArray(options) ? options : [],
+    options: Array.isArray(options) ? options.map((o) => String(o).trim()).filter(Boolean) : [],
     timeLimit: Number(timeLimit) || 30,
-    correct: Array.isArray(correct) ? correct : [String(correct)],
+    correct: cleanCorrect.length > 0 ? cleanCorrect : (options[0] ? [String(options[0]).trim()] : ["Option 1"]),
     status: "queued",
     createdAt: new Date(),
   };
@@ -302,7 +333,10 @@ function closeQuestion(pin) {
   if (!q) return;
   q.status = "closed";
 
-  const correctAnswers = q.correct || [];
+  const rawCorrect = Array.isArray(q.correct) ? q.correct.flat(Infinity) : [q.correct];
+  const correctAnswers = rawCorrect
+    .filter((c) => c !== undefined && c !== null)
+    .map((c) => String(c).trim());
   const norm = (s) => String(s ?? "").trim().toLowerCase();
 
   const optionCounts = {};
@@ -318,7 +352,11 @@ function closeQuestion(pin) {
         p.isCorrect = true;
         const speedBonus = Math.max(0, Math.round(quiz.timeRemaining * 15));
         p.score += 1000 + speedBonus;
+      } else {
+        p.isCorrect = false;
       }
+    } else {
+      p.isCorrect = false;
     }
   }
 

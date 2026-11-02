@@ -1,15 +1,24 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { LogIn, Users } from "lucide-react";
 
-export default function JoinPage() {
+function JoinForm() {
   const router = useRouter();
-  const [pin, setPin] = useState("");
+  const searchParams = useSearchParams();
+  const paramPin = searchParams.get("pin") || "";
+
+  const [pin, setPin] = useState(paramPin);
   const [nickname, setNickname] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (paramPin) {
+      setPin(paramPin.replace(/\D/g, "").slice(0, 6));
+    }
+  }, [paramPin]);
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +38,10 @@ export default function JoinPage() {
 
     setLoading(true);
     try {
-      const backendUrl = typeof window !== "undefined" ? window.location.origin : (process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000");
+      const backendUrl =
+        typeof window !== "undefined"
+          ? window.location.origin
+          : process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
       const res = await fetch(`${backendUrl}/rooms/${cleanPin}`);
       if (!res.ok) {
         throw new Error("Room not found. Check the PIN and try again.");
@@ -49,7 +61,7 @@ export default function JoinPage() {
   return (
     <div className="max-w-md mx-auto mt-12 bg-white rounded-2xl shadow-md border border-slate-200 p-8">
       <div className="text-center mb-6">
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-indigo-100 text-indigo-600 mb-3">
+        <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-indigo-100 text-indigo-600 mb-3 shadow-xs">
           <Users className="w-7 h-7" />
         </div>
         <h1 className="text-2xl font-bold text-slate-800">Join Live Quiz</h1>
@@ -76,8 +88,9 @@ export default function JoinPage() {
             value={pin}
             onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
             placeholder="123456"
-            className="w-full text-center text-2xl font-mono tracking-widest px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold"
+            className="w-full text-center text-3xl font-mono tracking-widest px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-black text-slate-900"
             required
+            autoFocus={!paramPin}
           />
         </div>
 
@@ -92,24 +105,19 @@ export default function JoinPage() {
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
             placeholder="e.g. Alex"
-            className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-base"
+            className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-base font-medium"
             required
+            autoFocus={Boolean(paramPin)}
           />
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition disabled:opacity-50"
+          className="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition disabled:opacity-50 text-base"
         >
-          {loading ? (
-            "Joining..."
-          ) : (
-            <>
-              <LogIn className="w-5 h-5" />
-              <span>Join Game</span>
-            </>
-          )}
+          <LogIn className="w-5 h-5" />
+          <span>{loading ? "Joining..." : "Join Game"}</span>
         </button>
       </form>
 
@@ -122,5 +130,13 @@ export default function JoinPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function JoinPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-slate-400">Loading join screen...</div>}>
+      <JoinForm />
+    </Suspense>
   );
 }

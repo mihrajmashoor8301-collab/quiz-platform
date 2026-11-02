@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, use, Suspense } from "react";
+import { useEffect, useState, use, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { io, Socket } from "socket.io-client";
 import {
@@ -25,6 +25,7 @@ function RoomContent({ pin }: { pin: string }) {
   const [currentQuestion, setCurrentQuestion] = useState<any>(null);
   const [timeRemaining, setTimeRemaining] = useState(30);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const selectedAnswerRef = useRef<string | null>(null);
   const [roundResult, setRoundResult] = useState<any>(null);
   const [myScore, setMyScore] = useState(0);
   const [myRank, setMyRank] = useState(1);
@@ -52,6 +53,7 @@ function RoomContent({ pin }: { pin: string }) {
     s.on("question-started", (data) => {
       setCurrentQuestion(data);
       setTimeRemaining(data.timeRemaining);
+      selectedAnswerRef.current = null;
       setSelectedAnswer(null);
       setWasCorrect(null);
       setPlayerState("question");
@@ -67,9 +69,19 @@ function RoomContent({ pin }: { pin: string }) {
 
     s.on("question-results", (data) => {
       setRoundResult(data);
-      // Check if player's answer was correct
+
       const norm = (str: any) => String(str ?? "").trim().toLowerCase();
-      const isCorrect = data.correctAnswers?.some((c: string) => norm(c) === norm(selectedAnswer));
+      const myAnswer = selectedAnswerRef.current;
+      const myEntry = data.leaderboard?.find((p: any) => p.id === s.id);
+
+      // Determine accuracy from server evaluation or matching answer text
+      let isCorrect = false;
+      if (myEntry && typeof myEntry.isCorrect === "boolean") {
+        isCorrect = myEntry.isCorrect;
+      } else if (myAnswer) {
+        isCorrect = Boolean(data.correctAnswers?.some((c: string) => norm(c) === norm(myAnswer)));
+      }
+
       setWasCorrect(isCorrect);
 
       // Find my updated score and rank from leaderboard
@@ -104,10 +116,13 @@ function RoomContent({ pin }: { pin: string }) {
 
   const handleSubmit = (option: string) => {
     if (playerState !== "question" || !socket || !currentQuestion) return;
-    setSelectedAnswer(option);
+    const cleanOption = String(option || "").trim();
+    selectedAnswerRef.current = cleanOption;
+    setSelectedAnswer(cleanOption);
+
     socket.emit("submit-answer", {
       questionId: currentQuestion.id,
-      answer: option,
+      answer: cleanOption,
     });
     setPlayerState("submitted");
   };
@@ -214,21 +229,48 @@ function RoomContent({ pin }: { pin: string }) {
 
       {/* State: Round Results */}
       {playerState === "results" && (
-        <div className="bg-white p-8 rounded-3xl shadow-md border border-slate-200 text-center space-y-6">
+        <div
+          className={`p-8 rounded-3xl shadow-md border text-center space-y-6 transition ${
+            wasCorrect
+              ? "bg-white border-emerald-300 ring-2 ring-emerald-500/20"
+              : "bg-white border-slate-200"
+          }`}
+        >
           <div className="inline-flex p-4 rounded-full">
             {wasCorrect ? (
-              <CheckCircle2 className="w-16 h-16 text-emerald-500" />
+              <div className="p-3 bg-emerald-100 text-emerald-600 rounded-full animate-bounce">
+                <CheckCircle2 className="w-16 h-16" />
+              </div>
             ) : (
-              <XCircle className="w-16 h-16 text-rose-500" />
+              <div className="p-3 bg-rose-100 text-rose-600 rounded-full animate-pulse">
+                <XCircle className="w-16 h-16" />
+              </div>
             )}
           </div>
 
           <div>
-            <h2 className="text-3xl font-black text-slate-900">
-              {wasCorrect ? "Correct!" : "Incorrect!"}
+            <h2
+              className={`text-3xl font-black ${
+                wasCorrect ? "text-emerald-700" : "text-rose-700"
+              }`}
+            >
+              {wasCorrect ? "Correct! 🎉" : "Incorrect"}
             </h2>
+
+            {selectedAnswer && (
+              <p className="text-slate-600 mt-2 text-sm">
+                You chose:{" "}
+                <span className="font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded">
+                  {selectedAnswer}
+                </span>
+              </p>
+            )}
+
             <p className="text-slate-500 mt-1 text-sm">
-              Correct Answer: <span className="font-bold text-slate-800">{roundResult?.correctAnswers?.join(", ")}</span>
+              Correct Answer:{" "}
+              <span className="font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-200">
+                {roundResult?.correctAnswers?.join(", ")}
+              </span>
             </p>
           </div>
 
