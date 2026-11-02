@@ -36,6 +36,16 @@ function RoomContent({ pin }: { pin: string }) {
     return process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
   };
 
+  const getPlayerId = () => {
+    if (typeof window === "undefined") return "";
+    let pid = localStorage.getItem(`quiz_pid_${pin}`);
+    if (!pid) {
+      pid = "p_" + Math.random().toString(36).slice(2, 9) + Date.now().toString(36);
+      localStorage.setItem(`quiz_pid_${pin}`, pid);
+    }
+    return pid;
+  };
+
   useEffect(() => {
     const s = io(getBackendUrl(), {
       transports: ["websocket", "polling"],
@@ -43,20 +53,35 @@ function RoomContent({ pin }: { pin: string }) {
 
     s.on("connect", () => {
       setConnected(true);
-      s.emit("join-room", { roomPin: pin, nickname });
+      s.emit("join-room", { roomPin: pin, nickname, playerId: getPlayerId() });
     });
 
     s.on("joined", (data) => {
       if (data.room?.title) setRoomTitle(data.room.title);
+      if (data.participant) {
+        if (typeof data.participant.score === "number") setMyScore(data.participant.score);
+        if (data.participant.hasAnswered) {
+          selectedAnswerRef.current = data.participant.lastAnswer;
+          setSelectedAnswer(data.participant.lastAnswer);
+          setPlayerState("submitted");
+        }
+      }
     });
 
     s.on("question-started", (data) => {
       setCurrentQuestion(data);
       setTimeRemaining(data.timeRemaining);
-      selectedAnswerRef.current = null;
-      setSelectedAnswer(null);
-      setWasCorrect(null);
-      setPlayerState("question");
+
+      if (data.hasAnswered) {
+        selectedAnswerRef.current = data.lastAnswer;
+        setSelectedAnswer(data.lastAnswer);
+        setPlayerState("submitted");
+      } else {
+        selectedAnswerRef.current = null;
+        setSelectedAnswer(null);
+        setWasCorrect(null);
+        setPlayerState("question");
+      }
     });
 
     s.on("timer-tick", (data: { timeRemaining: number }) => {
@@ -72,7 +97,9 @@ function RoomContent({ pin }: { pin: string }) {
 
       const norm = (str: any) => String(str ?? "").trim().toLowerCase();
       const myAnswer = selectedAnswerRef.current;
-      const myEntry = data.leaderboard?.find((p: any) => p.id === s.id);
+      const myEntry = data.leaderboard?.find(
+        (p: any) => p.id === s.id || (p.nickname && norm(p.nickname) === norm(nickname))
+      );
 
       // Determine accuracy from server evaluation or matching answer text
       let isCorrect = false;
@@ -85,8 +112,10 @@ function RoomContent({ pin }: { pin: string }) {
       setWasCorrect(isCorrect);
 
       // Find my updated score and rank from leaderboard
-      if (data.leaderboard && s.id) {
-        const rankIndex = data.leaderboard.findIndex((p: any) => p.id === s.id);
+      if (data.leaderboard) {
+        const rankIndex = data.leaderboard.findIndex(
+          (p: any) => p.id === s.id || (p.nickname && norm(p.nickname) === norm(nickname))
+        );
         if (rankIndex !== -1) {
           setMyRank(rankIndex + 1);
           setMyScore(data.leaderboard[rankIndex].score);
@@ -97,8 +126,11 @@ function RoomContent({ pin }: { pin: string }) {
     });
 
     s.on("quiz-finished", (data) => {
-      if (data.leaderboard && s.id) {
-        const rankIndex = data.leaderboard.findIndex((p: any) => p.id === s.id);
+      if (data.leaderboard) {
+        const norm = (str: any) => String(str ?? "").trim().toLowerCase();
+        const rankIndex = data.leaderboard.findIndex(
+          (p: any) => p.id === s.id || (p.nickname && norm(p.nickname) === norm(nickname))
+        );
         if (rankIndex !== -1) {
           setMyRank(rankIndex + 1);
           setMyScore(data.leaderboard[rankIndex].score);

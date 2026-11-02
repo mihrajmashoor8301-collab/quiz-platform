@@ -69,6 +69,13 @@ const SAMPLE_PRESETS: QuestionItem[] = [
   },
 ];
 
+const STORAGE_KEY_TITLE = "quiz_host_title";
+const STORAGE_KEY_CAPACITY = "quiz_host_capacity";
+const STORAGE_KEY_GLOBAL_TIME = "quiz_host_global_time";
+const STORAGE_KEY_QUESTIONS = "quiz_host_questions";
+const STORAGE_KEY_DRAFT = "quiz_host_draft";
+const STORAGE_KEY_ACTIVE_ROOM = "quiz_host_active_room";
+
 export default function HostPage() {
   const [title, setTitle] = useState("My Live Quiz");
   const [maxParticipants, setMaxParticipants] = useState(50);
@@ -102,11 +109,177 @@ export default function HostPage() {
   const [answerStats, setAnswerStats] = useState({ answered: 0, total: 0 });
   const [roundResults, setRoundResults] = useState<any>(null);
   const [finalLeaderboard, setFinalLeaderboard] = useState<Player[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   const getBackendUrl = () => {
     if (typeof window !== "undefined") return window.location.origin;
     return process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
   };
+
+  const connectHostSocket = (roomPin: string, initialRoomObj?: any) => {
+    const backendUrl = getBackendUrl();
+    const s = io(backendUrl, { transports: ["websocket", "polling"] });
+
+    s.on("connect", () => {
+      s.emit("join-room", { roomPin, isHost: true });
+    });
+
+    s.on("host-joined", (data) => {
+      setRoom(data.room || initialRoomObj || { pin: roomPin });
+      if (data.state === "question") {
+        setGameState("question");
+      } else if (data.state === "results") {
+        setGameState("results");
+      } else if (data.state === "finished") {
+        setGameState("finished");
+      } else {
+        setGameState("lobby");
+      }
+      if (data.players) setPlayers(data.players);
+    });
+
+    s.on("player-list", (data: { players: Player[] }) => {
+      setPlayers(data.players || []);
+    });
+
+    s.on("question-started", (data) => {
+      setActiveQuestion(data);
+      setTimeRemaining(data.timeRemaining);
+      setAnswerStats({ answered: 0, total: players.length });
+      setRoundResults(null);
+      setGameState("question");
+    });
+
+    s.on("timer-tick", (data: { timeRemaining: number }) => {
+      setTimeRemaining(data.timeRemaining);
+    });
+
+    s.on("answer-stats", (data: { answered: number; total: number }) => {
+      setAnswerStats(data);
+    });
+
+    s.on("question-results", (data) => {
+      setRoundResults(data);
+      setPlayers(data.leaderboard || []);
+      setGameState("results");
+    });
+
+    s.on("quiz-finished", (data: { leaderboard: Player[] }) => {
+      setFinalLeaderboard(data.leaderboard || []);
+      setGameState("finished");
+    });
+
+    setSocket(s);
+    return s;
+  };
+
+  // Restore saved state from localStorage on mount (prevents content resetting on refresh)
+  useEffect(() => {
+    try {
+      const savedTitle = localStorage.getItem(STORAGE_KEY_TITLE);
+      if (savedTitle) setTitle(savedTitle);
+
+      const savedCapacity = localStorage.getItem(STORAGE_KEY_CAPACITY);
+      if (savedCapacity) setMaxParticipants(Number(savedCapacity) || 50);
+
+      const savedTime = localStorage.getItem(STORAGE_KEY_GLOBAL_TIME);
+      if (savedTime) {
+        const parsed = Number(savedTime);
+        if (parsed > 0) {
+          setGlobalTimeLimit(parsed);
+          setQuestionTimeLimit(parsed);
+        }
+      }
+
+      const savedQuestions = localStorage.getItem(STORAGE_KEY_QUESTIONS);
+      if (savedQuestions) {
+        const parsed = JSON.parse(savedQuestions);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setQuestions(parsed);
+        }
+      }
+
+      const savedDraft = localStorage.getItem(STORAGE_KEY_DRAFT);
+      if (savedDraft) {
+        const draft = JSON.parse(savedDraft);
+        if (draft.prompt) setPrompt(draft.prompt);
+        if (Array.isArray(draft.options)) setOptions(draft.options);
+        if (typeof draft.correctOptionIndex === "number") setCorrectOptionIndex(draft.correctOptionIndex);
+        if (draft.timeLimit) setQuestionTimeLimit(draft.timeLimit);
+      }
+
+      // Check if host refreshed while an active room lobby / game was in progress
+      const savedRoom = localStorage.getItem(STORAGE_KEY_ACTIVE_ROOM);
+      if (savedRoom) {
+        const parsed = JSON.parse(savedRoom);
+        if (parsed?.pin) {
+          const backendUrl = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
+          fetch(`${backendUrl}/rooms/${parsed.pin}`)
+            .then((res) => (res.ok ? res.json() : null))
+            .then((data) => {
+              if (data && data.status !== "finished") {
+                setRoom(data);
+                connectHostSocket(parsed.pin, data);
+              } else {
+                localStorage.removeItem(STORAGE_KEY_ACTIVE_ROOM);
+              }
+            })
+            .catch(() => {});
+        }
+      }
+    } catch (e) {
+      console.warn("Storage restoration error:", e);
+    } finally {
+      setIsLoaded(true);
+    }
+  }, []);
+
+  // Auto-save questions list to localStorage whenever updated
+  useEffect(() => {
+    if (!isLoaded) return;
+    try {
+      localStorage.setItem(STORAGE_KEY_QUESTIONS, JSON.stringify(questions));
+    } catch {}
+  }, [questions, isLoaded]);
+
+  // Auto-save title
+  useEffect(() => {
+    if (!isLoaded) return;
+    try {
+      localStorage.setItem(STORAGE_KEY_TITLE, title);
+    } catch {}
+  }, [title, isLoaded]);
+
+  // Auto-save capacity
+  useEffect(() => {
+    if (!isLoaded) return;
+    try {
+      localStorage.setItem(STORAGE_KEY_CAPACITY, String(maxParticipants));
+    } catch {}
+  }, [maxParticipants, isLoaded]);
+
+  // Auto-save global time limit
+  useEffect(() => {
+    if (!isLoaded) return;
+    try {
+      localStorage.setItem(STORAGE_KEY_GLOBAL_TIME, String(globalTimeLimit));
+    } catch {}
+  }, [globalTimeLimit, isLoaded]);
+
+  // Auto-save question draft in progress
+  useEffect(() => {
+    if (!isLoaded) return;
+    try {
+      if (prompt.trim() || options.some((o) => o.trim())) {
+        localStorage.setItem(
+          STORAGE_KEY_DRAFT,
+          JSON.stringify({ prompt, options, correctOptionIndex, timeLimit: questionTimeLimit })
+        );
+      } else {
+        localStorage.removeItem(STORAGE_KEY_DRAFT);
+      }
+    } catch {}
+  }, [prompt, options, correctOptionIndex, questionTimeLimit, isLoaded]);
 
   useEffect(() => {
     fetch(`${getBackendUrl()}/network-info`)
@@ -222,12 +395,31 @@ export default function HostPage() {
   };
 
   const handleClearAllQuestions = () => {
-    if (confirm("Are you sure you want to clear all questions?")) {
+    if (confirm("Are you sure you want to clear all questions? This will reset your question list.")) {
       setQuestions([]);
       setEditingIndex(null);
       setPrompt("");
       setOptions(["", "", "", ""]);
+      setCorrectOptionIndex(0);
+      try {
+        localStorage.removeItem(STORAGE_KEY_QUESTIONS);
+        localStorage.removeItem(STORAGE_KEY_DRAFT);
+      } catch {}
     }
+  };
+
+  const handleExitToEditor = () => {
+    if (socket) {
+      socket.disconnect();
+      setSocket(null);
+    }
+    try {
+      localStorage.removeItem(STORAGE_KEY_ACTIVE_ROOM);
+    } catch {}
+    setGameState("setup");
+    setRoom(null);
+    setActiveQuestion(null);
+    setRoundResults(null);
   };
 
   // Launch Game PIN and Room Lobby
@@ -258,6 +450,14 @@ export default function HostPage() {
       const created = await res.json();
       setRoom(created);
 
+      // Persist active room PIN so refreshing keeps host in the live game
+      try {
+        localStorage.setItem(
+          STORAGE_KEY_ACTIVE_ROOM,
+          JSON.stringify({ pin: created.pin, title: created.title })
+        );
+      } catch {}
+
       // Upload configured questions to room
       for (const q of questions) {
         await fetch(`${backendUrl}/rooms/${created.pin}/questions`, {
@@ -272,46 +472,8 @@ export default function HostPage() {
         });
       }
 
-      // Connect Socket.IO as Host
-      const s = io(backendUrl, { transports: ["websocket", "polling"] });
-
-      s.on("connect", () => {
-        s.emit("join-room", { roomPin: created.pin, isHost: true });
-        setGameState("lobby");
-      });
-
-      s.on("player-list", (data: { players: Player[] }) => {
-        setPlayers(data.players || []);
-      });
-
-      s.on("question-started", (data) => {
-        setActiveQuestion(data);
-        setTimeRemaining(data.timeRemaining);
-        setAnswerStats({ answered: 0, total: players.length });
-        setRoundResults(null);
-        setGameState("question");
-      });
-
-      s.on("timer-tick", (data: { timeRemaining: number }) => {
-        setTimeRemaining(data.timeRemaining);
-      });
-
-      s.on("answer-stats", (data: { answered: number; total: number }) => {
-        setAnswerStats(data);
-      });
-
-      s.on("question-results", (data) => {
-        setRoundResults(data);
-        setPlayers(data.leaderboard || []);
-        setGameState("results");
-      });
-
-      s.on("quiz-finished", (data: { leaderboard: Player[] }) => {
-        setFinalLeaderboard(data.leaderboard || []);
-        setGameState("finished");
-      });
-
-      setSocket(s);
+      // Connect Host Socket & join room
+      connectHostSocket(created.pin, created);
     } catch (err: any) {
       setError(err.message || "Failed to launch quiz room.");
     } finally {
@@ -364,12 +526,18 @@ export default function HostPage() {
               <p className="text-slate-500 mt-1">
                 Configure custom questions, pick correct answers, adjust timers, and launch your live lobby.
               </p>
-              {networkInfo?.wifiUrl && (
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold mt-2">
-                  <Wifi className="w-3.5 h-3.5" />
-                  <span>Wi-Fi Network: <strong className="font-mono text-emerald-800">{networkInfo.wifiUrl}</strong></span>
+              <div className="flex flex-wrap items-center gap-2 mt-2">
+                {networkInfo?.wifiUrl && (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold">
+                    <Wifi className="w-3.5 h-3.5" />
+                    <span>Wi-Fi Network: <strong className="font-mono text-emerald-800">{networkInfo.wifiUrl}</strong></span>
+                  </div>
+                )}
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span>Content auto-saved (persists on refresh)</span>
                 </div>
-              )}
+              </div>
             </div>
             {questions.length === 0 && (
               <button
@@ -869,8 +1037,7 @@ export default function HostPage() {
             <button
               onClick={() => {
                 if (confirm("Cancel this room and return to editor?")) {
-                  if (socket) socket.disconnect();
-                  setGameState("setup");
+                  handleExitToEditor();
                 }
               }}
               className="px-6 py-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold text-sm transition"
@@ -1063,15 +1230,11 @@ export default function HostPage() {
 
           <div className="pt-4 flex items-center justify-center gap-3">
             <button
-              onClick={() => {
-                setRoom(null);
-                setGameState("setup");
-                if (socket) socket.disconnect();
-              }}
+              onClick={handleExitToEditor}
               className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-8 rounded-xl flex items-center gap-2 shadow-sm transition"
             >
               <RotateCcw className="w-4 h-4" />
-              <span>Host Another Quiz</span>
+              <span>Host Another Quiz / Edit Questions</span>
             </button>
           </div>
         </div>

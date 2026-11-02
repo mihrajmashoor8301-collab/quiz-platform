@@ -369,13 +369,15 @@ function closeQuestion(pin) {
     }))
     .sort((a, b) => b.score - a.score);
 
-  io.to(pin).emit("question-results", {
+  const results = {
     questionId: q.id,
     correctAnswers,
     optionCounts,
     leaderboard,
     hasNext: quiz.currentQuestionIndex < quiz.questions.length - 1,
-  });
+  };
+  quiz.lastRoundResults = results;
+  io.to(pin).emit("question-results", results);
 }
 
 function finishQuiz(pin) {
@@ -395,6 +397,9 @@ function finishQuiz(pin) {
       score: p.score,
     }))
     .sort((a, b) => b.score - a.score);
+
+  quiz.finalLeaderboard = leaderboard;
+  quiz.lastRoundResults = null;
 
   const service = rooms.get(pin);
   if (service) {
@@ -472,20 +477,29 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     log.info(`disconnected ${socket.id}`);
-    const { rid, pid } = socket.data || {};
-    if (rid && pid) {
+    const { rid, pid, isHost } = socket.data || {};
+    if (rid && pid && !isHost) {
       const quiz = activeQuizzes.get(rid);
       if (quiz) {
-        quiz.participants.delete(pid);
-        const playersList = Array.from(quiz.participants.values()).map((p) => ({
-          id: p.socketId,
-          nickname: p.nickname,
-          score: p.score,
-        }));
-        io.to(rid).emit("player-list", {
-          players: playersList,
-          count: playersList.length,
-        });
+        const participant = quiz.participants.get(pid);
+        if (participant) {
+          participant.connected = false;
+          if (participant.disconnectTimer) clearTimeout(participant.disconnectTimer);
+          participant.disconnectTimer = setTimeout(() => {
+            if (!participant.connected) {
+              quiz.participants.delete(pid);
+              const playersList = Array.from(quiz.participants.values()).map((p) => ({
+                id: p.socketId,
+                nickname: p.nickname,
+                score: p.score,
+              }));
+              io.to(rid).emit("player-list", {
+                players: playersList,
+                count: playersList.length,
+              });
+            }
+          }, 30000);
+        }
       }
     }
   });
@@ -501,6 +515,7 @@ async function onJoinRoom(socket, data, callback) {
   const roomPin = typeof data === "string" ? data : (data?.pin || data?.roomPin);
   const nickname = typeof data === "object" ? data?.nickname : null;
   const isHost = Boolean(typeof data === "object" && data?.isHost);
+  const playerId = typeof data === "object" ? data?.playerId : null;
 
   if (typeof roomPin !== "string" || !/^\d{6}$/.test(roomPin)) {
     if (callback) callback(JOIN_ERRORS.INVALID_PIN);
@@ -540,6 +555,28 @@ async function onJoinRoom(socket, data, callback) {
       questions: quiz.questions,
       players: playersList,
     });
+
+    if (quiz.questionState === "question" && quiz.currentQuestionIndex >= 0) {
+      const q = quiz.questions[quiz.currentQuestionIndex];
+      if (q) {
+        socket.emit("question-started", {
+          index: quiz.currentQuestionIndex,
+          total: quiz.questions.length,
+          id: q.id,
+          text: q.text,
+          options: q.options,
+          timeLimit: q.timeLimit,
+          timeRemaining: quiz.timeRemaining,
+        });
+      }
+    } else if (quiz.questionState === "results" && quiz.lastRoundResults) {
+      socket.emit("question-results", quiz.lastRoundResults);
+    } else if (quiz.questionState === "finished") {
+      socket.emit("quiz-finished", {
+        leaderboard: quiz.finalLeaderboard || playersList,
+      });
+    }
+
     if (callback) callback(null);
     return;
   }
@@ -547,18 +584,47 @@ async function onJoinRoom(socket, data, callback) {
   // Participant join
   const playerNick =
     nickname && nickname.trim().length > 0 ? nickname.trim() : `Player-${socket.id.slice(0, 4)}`;
-  const participant = {
-    socketId: socket.id,
-    nickname: playerNick,
-    score: 0,
-    hasAnswered: false,
-    lastAnswer: null,
-    isCorrect: false,
-  };
 
-  quiz.participants.set(socket.id, participant);
-  socket.data = { rid: roomPin, pid: socket.id, nickname: playerNick, isHost: false };
-  service.join(socket.id, playerNick);
+  // Check if participant is reconnecting
+  let participant = null;
+  for (const [existingSocketId, p] of quiz.participants.entries()) {
+    const matchesId = playerId && p.playerId === playerId;
+    const matchesNick = p.nickname.toLowerCase() === playerNick.toLowerCase();
+    if (matchesId || matchesNick) {
+      participant = p;
+      if (p.disconnectTimer) {
+        clearTimeout(p.disconnectTimer);
+        p.disconnectTimer = null;
+      }
+      if (existingSocketId !== socket.id) {
+        quiz.participants.delete(existingSocketId);
+      }
+      break;
+    }
+  }
+
+  if (participant) {
+    participant.socketId = socket.id;
+    participant.connected = true;
+    if (playerId) participant.playerId = playerId;
+    quiz.participants.set(socket.id, participant);
+  } else {
+    participant = {
+      socketId: socket.id,
+      playerId: playerId || `p_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      nickname: playerNick,
+      score: 0,
+      hasAnswered: false,
+      lastAnswer: null,
+      isCorrect: false,
+      connected: true,
+      disconnectTimer: null,
+    };
+    quiz.participants.set(socket.id, participant);
+    service.join(socket.id, playerNick);
+  }
+
+  socket.data = { rid: roomPin, pid: socket.id, nickname: participant.nickname, isHost: false };
 
   socket.emit("joined", {
     room: {
@@ -568,7 +634,12 @@ async function onJoinRoom(socket, data, callback) {
     },
     participant: {
       id: socket.id,
-      nickname: playerNick,
+      playerId: participant.playerId,
+      nickname: participant.nickname,
+      score: participant.score,
+      hasAnswered: participant.hasAnswered,
+      lastAnswer: participant.lastAnswer,
+      isCorrect: participant.isCorrect,
     },
     state: quiz.questionState,
   });
@@ -595,8 +666,16 @@ async function onJoinRoom(socket, data, callback) {
         options: q.options,
         timeLimit: q.timeLimit,
         timeRemaining: quiz.timeRemaining,
+        hasAnswered: participant.hasAnswered,
+        lastAnswer: participant.lastAnswer,
       });
     }
+  } else if (quiz.questionState === "results" && quiz.lastRoundResults) {
+    socket.emit("question-results", quiz.lastRoundResults);
+  } else if (quiz.questionState === "finished") {
+    socket.emit("quiz-finished", {
+      leaderboard: quiz.finalLeaderboard || playersList,
+    });
   }
 
   if (callback) callback(null);

@@ -18,6 +18,12 @@ function JoinForm() {
     if (paramPin) {
       setPin(paramPin.replace(/\D/g, "").slice(0, 6));
     }
+    try {
+      const savedNick = localStorage.getItem("quiz_nickname");
+      if (savedNick && !nickname) {
+        setNickname(savedNick);
+      }
+    } catch {}
   }, [paramPin]);
 
   const handleJoin = async (e: React.FormEvent) => {
