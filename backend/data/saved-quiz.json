@@ -1,0 +1,26 @@
+{
+  "title": "Ultimate Science TriviaPersistent Science Quiz",
+  "maxParticipants": 50,
+  "globalTimeLimit": 20,
+  "questions": [
+    {
+      "question": "What is H2O?",
+      "options": [
+        "Water",
+        "Air"
+      ],
+      "correct": "Water",
+      "timeLimit": 15
+    },
+    {
+      "question": "What is H2O?",
+      "options": [
+        "Water",
+        "Salt"
+      ],
+      "correct": "Water",
+      "timeLimit": 20
+    }
+  ],
+  "updatedAt": "2026-11-02T13:07:48.284Z"
+}

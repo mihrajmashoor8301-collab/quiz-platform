@@ -116,6 +116,26 @@ export default function HostPage() {
     return process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
   };
 
+  const syncToServer = (
+    updatedQuestions?: QuestionItem[],
+    updatedTitle?: string,
+    updatedTime?: number
+  ) => {
+    try {
+      const backendUrl = getBackendUrl();
+      fetch(`${backendUrl}/saved-quiz`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: updatedTitle ?? title,
+          maxParticipants,
+          globalTimeLimit: updatedTime ?? globalTimeLimit,
+          questions: updatedQuestions ?? questions,
+        }),
+      }).catch(() => {});
+    } catch {}
+  };
+
   const connectHostSocket = (roomPin: string, initialRoomObj?: any) => {
     const backendUrl = getBackendUrl();
     const s = io(backendUrl, { transports: ["websocket", "polling"] });
@@ -136,6 +156,18 @@ export default function HostPage() {
         setGameState("lobby");
       }
       if (data.players) setPlayers(data.players);
+      if (data.questions && data.questions.length > 0) {
+        const mappedQuestions: QuestionItem[] = data.questions.map((q: any) => ({
+          question: q.text || q.question?.text || "Question",
+          options: q.options || [],
+          correct: Array.isArray(q.correct) ? q.correct[0] : q.correct || q.options?.[0] || "",
+          timeLimit: q.timeLimit || 20,
+        }));
+        setQuestions(mappedQuestions);
+        try {
+          localStorage.setItem(STORAGE_KEY_QUESTIONS, JSON.stringify(mappedQuestions));
+        } catch {}
+      }
     });
 
     s.on("player-list", (data: { players: Player[] }) => {
@@ -173,8 +205,11 @@ export default function HostPage() {
     return s;
   };
 
-  // Restore saved state from localStorage on mount (prevents content resetting on refresh)
+  // Restore saved state from server and localStorage on mount
   useEffect(() => {
+    const backendUrl = getBackendUrl();
+
+    // 1. Instant local restore from localStorage
     try {
       const savedTitle = localStorage.getItem(STORAGE_KEY_TITLE);
       if (savedTitle) setTitle(savedTitle);
@@ -207,13 +242,45 @@ export default function HostPage() {
         if (typeof draft.correctOptionIndex === "number") setCorrectOptionIndex(draft.correctOptionIndex);
         if (draft.timeLimit) setQuestionTimeLimit(draft.timeLimit);
       }
+    } catch (e) {
+      console.warn("Storage restoration error:", e);
+    }
 
-      // Check if host refreshed while an active room lobby / game was in progress
+    // 2. Authoritative server sync (loads saved questions from backend disk)
+    fetch(`${backendUrl}/saved-quiz`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data) {
+          if (data.title) {
+            setTitle(data.title);
+            try {
+              localStorage.setItem(STORAGE_KEY_TITLE, data.title);
+            } catch {}
+          }
+          if (data.maxParticipants) setMaxParticipants(data.maxParticipants);
+          if (data.globalTimeLimit) {
+            setGlobalTimeLimit(data.globalTimeLimit);
+            setQuestionTimeLimit(data.globalTimeLimit);
+          }
+          if (Array.isArray(data.questions) && data.questions.length > 0) {
+            setQuestions(data.questions);
+            try {
+              localStorage.setItem(STORAGE_KEY_QUESTIONS, JSON.stringify(data.questions));
+            } catch {}
+          }
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        setIsLoaded(true);
+      });
+
+    // 3. Check if host refreshed while an active room lobby / game was in progress
+    try {
       const savedRoom = localStorage.getItem(STORAGE_KEY_ACTIVE_ROOM);
       if (savedRoom) {
         const parsed = JSON.parse(savedRoom);
         if (parsed?.pin) {
-          const backendUrl = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
           fetch(`${backendUrl}/rooms/${parsed.pin}`)
             .then((res) => (res.ok ? res.json() : null))
             .then((data) => {
@@ -227,18 +294,15 @@ export default function HostPage() {
             .catch(() => {});
         }
       }
-    } catch (e) {
-      console.warn("Storage restoration error:", e);
-    } finally {
-      setIsLoaded(true);
-    }
+    } catch {}
   }, []);
 
-  // Auto-save questions list to localStorage whenever updated
+  // Auto-save questions list to localStorage and server whenever updated
   useEffect(() => {
     if (!isLoaded) return;
     try {
       localStorage.setItem(STORAGE_KEY_QUESTIONS, JSON.stringify(questions));
+      syncToServer(questions, title, globalTimeLimit);
     } catch {}
   }, [questions, isLoaded]);
 
@@ -247,6 +311,7 @@ export default function HostPage() {
     if (!isLoaded) return;
     try {
       localStorage.setItem(STORAGE_KEY_TITLE, title);
+      syncToServer(questions, title, globalTimeLimit);
     } catch {}
   }, [title, isLoaded]);
 
@@ -263,6 +328,7 @@ export default function HostPage() {
     if (!isLoaded) return;
     try {
       localStorage.setItem(STORAGE_KEY_GLOBAL_TIME, String(globalTimeLimit));
+      syncToServer(questions, title, globalTimeLimit);
     } catch {}
   }, [globalTimeLimit, isLoaded]);
 
@@ -336,12 +402,17 @@ export default function HostPage() {
       setQuestions((prev) => {
         const next = [...prev];
         next[editingIndex] = finalQuestion;
+        syncToServer(next);
         return next;
       });
       setEditingIndex(null);
     } else {
       // Add new question
-      setQuestions((prev) => [...prev, finalQuestion]);
+      setQuestions((prev) => {
+        const next = [...prev, finalQuestion];
+        syncToServer(next);
+        return next;
+      });
     }
 
     // Reset Form
@@ -349,6 +420,9 @@ export default function HostPage() {
     setOptions(["", "", "", ""]);
     setCorrectOptionIndex(0);
     setQuestionTimeLimit(globalTimeLimit);
+    try {
+      localStorage.removeItem(STORAGE_KEY_DRAFT);
+    } catch {}
   };
 
   const handleEditQuestion = (idx: number) => {
@@ -373,7 +447,11 @@ export default function HostPage() {
       setOptions(["", "", "", ""]);
       setCorrectOptionIndex(0);
     }
-    setQuestions((prev) => prev.filter((_, i) => i !== idx));
+    setQuestions((prev) => {
+      const next = prev.filter((_, i) => i !== idx);
+      syncToServer(next);
+      return next;
+    });
   };
 
   const handleMoveQuestion = (idx: number, direction: "up" | "down") => {
@@ -385,18 +463,21 @@ export default function HostPage() {
       const temp = next[idx];
       next[idx] = next[targetIdx];
       next[targetIdx] = temp;
+      syncToServer(next);
       return next;
     });
   };
 
   const handleLoadSampleQuiz = () => {
     setQuestions(SAMPLE_PRESETS);
+    syncToServer(SAMPLE_PRESETS);
     setError("");
   };
 
   const handleClearAllQuestions = () => {
     if (confirm("Are you sure you want to clear all questions? This will reset your question list.")) {
       setQuestions([]);
+      syncToServer([]);
       setEditingIndex(null);
       setPrompt("");
       setOptions(["", "", "", ""]);

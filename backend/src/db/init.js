@@ -1,5 +1,5 @@
-// PostgreSQL init: `quiz_app` role and database already exist (see .env.example).
-// pg is used to apply schema.sql in place of Supabase Edge Functions.
+// PostgreSQL init: applies schema.sql in place of Supabase Edge Functions.
+// Runs as `quiz_app` (created by `src/db/seed.js`).
 import { Pool } from "pg";
 import fs from "node:fs";
 import path from "node:path";
@@ -20,9 +20,6 @@ export async function initDb() {
   });
   await pool.query("SELECT 1");
   await pool.query(schema);
-  await pool.query("GRANT USAGE ON SCHEMA public TO quiz_app");
-  await pool.query("GRANT ALL ON ALL TABLES IN SCHEMA public TO quiz_app");
-  await pool.query("GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO quiz_app");
   await pool.end();
 }
 

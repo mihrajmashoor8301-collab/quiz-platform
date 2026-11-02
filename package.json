@@ -10,6 +10,9 @@
     "dev": "npm run dev --workspace=frontend",
     "start": "node server.js",
     "build": "npm run build --workspace=frontend",
+    "db-start": "npm run db:start --workspace=backend",
+    "db-check": "npm run db:check --workspace=backend",
+    "db-init": "npm run db:init --workspace=backend",
     "test": "vitest run",
     "lint": "npm run lint --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present"

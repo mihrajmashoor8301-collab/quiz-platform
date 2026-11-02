@@ -1,4 +1,7 @@
 import { execSync } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import os from "node:os";
 import express from "express";
 import cors from "cors";
@@ -161,6 +164,56 @@ app.get("/network-info", (_req, res) => {
     port: HTTP_PORT,
     wifiUrl: `http://${primaryIp}:${HTTP_PORT}`,
   });
+});
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const SAVED_QUIZ_PATH = path.resolve(__dirname, "../data/saved-quiz.json");
+
+function readSavedQuiz() {
+  try {
+    if (fs.existsSync(SAVED_QUIZ_PATH)) {
+      const raw = fs.readFileSync(SAVED_QUIZ_PATH, "utf8");
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object") return parsed;
+    }
+  } catch (err) {
+    log.error("Failed to read saved quiz:", err);
+  }
+  return {
+    title: "My Live Quiz",
+    maxParticipants: 50,
+    globalTimeLimit: 20,
+    questions: [],
+  };
+}
+
+function writeSavedQuiz(data) {
+  try {
+    const dir = path.dirname(SAVED_QUIZ_PATH);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(SAVED_QUIZ_PATH, JSON.stringify(data, null, 2), "utf8");
+  } catch (err) {
+    log.error("Failed to write saved quiz:", err);
+  }
+}
+
+app.get("/saved-quiz", (_req, res) => {
+  res.json(readSavedQuiz());
+});
+
+app.post("/saved-quiz", (req, res) => {
+  const { title, maxParticipants, globalTimeLimit, questions } = req.body || {};
+  const current = readSavedQuiz();
+  const updated = {
+    title: typeof title === "string" ? title : current.title,
+    maxParticipants: Number(maxParticipants) || current.maxParticipants,
+    globalTimeLimit: Number(globalTimeLimit) || current.globalTimeLimit,
+    questions: Array.isArray(questions) ? questions : current.questions,
+    updatedAt: new Date().toISOString(),
+  };
+  writeSavedQuiz(updated);
+  res.json(updated);
 });
 
 app.post("/rooms", async (req, res) => {
