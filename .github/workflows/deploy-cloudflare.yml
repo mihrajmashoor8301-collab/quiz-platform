@@ -15,9 +15,14 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm audit --audit-level=moderate
       - run: npm test
       - run: npm run typecheck
+      - run: npm run lint
       - run: npm run build
+      - name: Validate Wrangler deployment bundle
+        working-directory: frontend
+        run: npx wrangler deploy --dry-run --config wrangler.jsonc
       - name: Check Cloudflare deployment credentials
         id: cloudflare_credentials
         env:
@@ -30,7 +35,7 @@ jobs:
             echo "configured=false" >> "$GITHUB_OUTPUT"
           fi
       - name: Deploy Worker
-        if: ${{ steps.cloudflare_credentials.outputs.configured == 'true' }}
+        if: ${{ github.ref == 'refs/heads/cloudflare-deployment' && steps.cloudflare_credentials.outputs.configured == 'true' }}
         run: npm run deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

@@ -7,8 +7,13 @@
 
 import net from "node:net";
 
-const host = process.argv[2] === "--host" ? process.argv[3] : "127.0.0.1";
-const port = process.argv[4] === "--port" ? Number(process.argv[5]) : 5432;
+const options = new Map();
+for (let index = 2; index < process.argv.length; index += 1) {
+  const key = process.argv[index];
+  if (key === "--host" || key === "--port") options.set(key.slice(2), process.argv[++index]);
+}
+const host = options.get("host") || process.env.DB_HOST || process.env.PGHOST || "localhost";
+const port = Number(options.get("port") || process.env.DB_PORT || process.env.PGPORT || 5432);
 
 const socket = net.connect({ host, port });
 socket.on("connect", () => {

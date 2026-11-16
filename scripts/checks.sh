@@ -1,37 +1,52 @@
-# Build/postinstall checks (run after `npm install` in each workspace)
-# 1. Install production dependencies (backend uses --omit=dev).
-# 2. Start the local PostgreSQL cluster and push the schema + seed.
-# 3. Lint both workspaces.
-# 4. Run the test suite.
-# 5. Type-check the frontend.
-# Example: npx run-p install lint test typecheck
+#!/usr/bin/env bash
+set -euo pipefail
 
-install-backend:
-	npm install --omit=dev
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+COMMAND="${1:-all}"
 
-install-frontend:
-	npm install
-
-db-start:
-	@/usr/lib/postgresql/18/bin/pg_ctl -D /home/mihraj/quiz-platform/pgdata \
-		-o "-p 5432 -c listen_addresses=localhost -c unix_socket_directories=/home/mihraj/quiz-platform/sockdir" \
-		-l /home/mihraj/quiz-platform/pg.log start
-
-db-check:
-	@node $(pwd)/scripts/db-ready.mjs
-
-db-init:
-	npm run db-init --workspace=backend
-
-lint:
-	npm run lint --workspaces --if-present
-
-test:
-	npm run test --workspaces --if-present
-
-typecheck:
-	npm run typecheck --workspace=frontend
-
-all:
-	npm run build --if-present
-	npm run test:ci --workspaces --if-present
+case "$COMMAND" in
+  db-start)
+    PG_CTL="${PG_CTL:-$(command -v pg_ctl || true)}"
+    if [[ -z "$PG_CTL" ]]; then
+      echo "pg_ctl was not found; install PostgreSQL server tools or set PG_CTL." >&2
+      exit 1
+    fi
+    PGDATA="${PGDATA:-$REPO_ROOT/pgdata}"
+    PGPORT="${PGPORT:-${DB_PORT:-5432}}"
+    if [[ ! -s "$PGDATA/PG_VERSION" ]]; then
+      echo "PostgreSQL data directory is not initialized: $PGDATA (set PGDATA or run initdb first)." >&2
+      exit 1
+    fi
+    "$PG_CTL" -D "$PGDATA" \
+      -o "-p $PGPORT -c listen_addresses=localhost" \
+      -l "${PG_LOG:-$REPO_ROOT/pg.log}" start
+    ;;
+  db-check)
+    node "$SCRIPT_DIR/db-ready.mjs" \
+      --host "${DB_HOST:-${PGHOST:-localhost}}" \
+      --port "${DB_PORT:-${PGPORT:-5432}}"
+    ;;
+  db-init)
+    npm run db:init --workspace=backend
+    ;;
+  lint)
+    npm run lint --workspaces --if-present
+    ;;
+  test)
+    npm test
+    ;;
+  typecheck)
+    npm run typecheck --workspaces --if-present
+    ;;
+  all)
+    npm run lint --workspaces --if-present
+    npm test
+    npm run typecheck --workspaces --if-present
+    npm run build
+    ;;
+  *)
+    echo "Usage: $0 {db-start|db-check|db-init|lint|test|typecheck|all}" >&2
+    exit 2
+    ;;
+esac
