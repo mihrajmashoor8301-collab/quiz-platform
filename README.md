@@ -48,7 +48,7 @@ The Worker is configured in `frontend/wrangler.jsonc`. Cloudflare Workers Free c
 4. Deploy manually with `npm run deploy`, or configure the GitHub Actions workflow below.
 5. Open the `workers.dev` URL shown by Cloudflare and test host sign-in, quiz saving, room creation, joining, and a complete quiz.
 
-The GitHub Actions workflow deploys pushes to the `cloudflare-deployment` branch. Add repository Actions secrets `CLOUDFLARE_API_TOKEN` (Workers Scripts: Edit) and `CLOUDFLARE_ACCOUNT_ID`. Set the three Supabase values directly as Worker secrets in Cloudflare; they do not need to be copied into GitHub. Pushing the branch triggers a build, tests, and deployment. GitHub integration uses the official Wrangler CLI; no paid build service is required.
+The GitHub Actions workflow validates pushes to `cloudflare-deployment` and deploys once repository Actions secrets `CLOUDFLARE_API_TOKEN` (Workers Scripts: Edit) and `CLOUDFLARE_ACCOUNT_ID` are configured. Until both Cloudflare secrets exist, it runs tests and builds but skips deployment. Set the three Supabase values directly as Worker secrets in Cloudflare; they do not need to be copied into GitHub. GitHub integration uses the official Wrangler CLI; no paid build service is required.
 
 ## Environment variable names
 
