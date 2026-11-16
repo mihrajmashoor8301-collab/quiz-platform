@@ -1,5 +1,5 @@
 export const MAX_QUESTIONS = 50;
-export const MAX_OPTIONS = 4;
+export const MAX_OPTIONS = 8;
 export const MAX_PLAYERS = 200;
 
 export function normalizeText(value) {
@@ -26,7 +26,7 @@ export function normalizeQuestions(input) {
     const timeLimit = Number(item?.timeLimit ?? 20);
     if (!text || text.length > 500) throw new Error(`Question ${index + 1} needs a prompt under 500 characters.`);
     if (options.length < 2 || options.length > MAX_OPTIONS || options.some((option) => option.length > 200)) {
-      throw new Error(`Question ${index + 1} needs 2 to 4 options, each under 200 characters.`);
+      throw new Error(`Question ${index + 1} needs 2 to ${MAX_OPTIONS} options, each under 200 characters.`);
     }
     if (new Set(options.map(normalizeText)).size !== options.length) {
       throw new Error(`Question ${index + 1} has duplicate options.`);

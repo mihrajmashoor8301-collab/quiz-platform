@@ -44,8 +44,8 @@ export function validateBankQuestion(input) {
   const correct = typeof input.correct === "string" ? input.correct.trim() : "";
   const timeLimit = Number(input.timeLimit ?? 20);
   if (!question || question.length > 500) throw new HttpError(400, "Question text must be 1 to 500 characters.");
-  if (options.length < 2 || options.length > 4 || options.some((option) => !option || option.length > 200)) {
-    throw new HttpError(400, "Each question needs 2 to 4 non-empty options, each at most 200 characters.");
+  if (options.length < 2 || options.length > 8 || options.some((option) => !option || option.length > 200)) {
+    throw new HttpError(400, "Each question needs 2 to 8 non-empty options, each at most 200 characters.");
   }
   if (new Set(options.map(normalizeText)).size !== options.length) {
     throw new HttpError(400, "Question options must be unique.");

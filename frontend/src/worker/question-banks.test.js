@@ -227,6 +227,27 @@ describe("host-specific question bank Worker API", () => {
     expect(database.bank_questions).toHaveLength(1);
   });
 
+  it("accepts up to eight answer options and rejects more than the platform limit", async () => {
+    const { env, database } = createEnvironment();
+    database.question_banks.push({ id: BANK_A, host_id: HOST_A, name: "Options", description: "", created_at: "now", updated_at: "now" });
+    const options = ["A", "B", "C", "D", "E", "F", "G", "H"];
+    const accepted = await json(await send(env, "host-a-access-token-long", `/api/question-banks/${BANK_A}/questions`, "POST", {
+      question: "Pick H",
+      options,
+      correct: "H",
+      timeLimit: 20,
+    }));
+    expect(accepted.status).toBe(201);
+    expect(accepted.body.questionData.options).toEqual(options);
+    await expect(send(env, "host-a-access-token-long", `/api/question-banks/${BANK_A}/questions`, "POST", {
+      question: "Pick I",
+      options: [...options, "I"],
+      correct: "I",
+      timeLimit: 20,
+    })).rejects.toMatchObject({ status: 400 });
+    expect(database.bank_questions).toHaveLength(1);
+  });
+
   it("copies imported questions into a quiz draft without mutating bank data", () => {
     const saved = { ...validQuestion, options: [...validQuestion.options], source: { ...validQuestion.source } };
     const [draft] = cloneQuestionsForQuiz([saved]);

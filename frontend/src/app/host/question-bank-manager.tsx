@@ -1,6 +1,16 @@
 "use client";
 
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
+import {
+  addQuestionOption,
+  buildQuestionData,
+  createQuestionFormValue,
+  MAX_QUESTION_OPTIONS,
+  QuestionFormValue,
+  QUESTION_TIMER_PRESETS,
+  removeQuestionOption,
+  selectCorrectQuestionOption,
+} from "./question-editor-utils";
 
 type ApiFetch = (path: string, init?: RequestInit) => Promise<Response>;
 type Bank = {
@@ -36,17 +46,6 @@ function questionLabel(question: Record<string, unknown>) {
   return String(question.question ?? question.text ?? "Untitled question");
 }
 
-function newQuestionForm() {
-  return {
-    question: "",
-    options: "",
-    correct: "",
-    timeLimit: "20",
-    explanation: "",
-    metadata: "{}",
-  };
-}
-
 export default function QuestionBankManager({ apiFetch, mode, onClose, onImport, maxSelection = 50 }: Props) {
   const [banks, setBanks] = useState<Bank[]>([]);
   const [bankLoading, setBankLoading] = useState(true);
@@ -58,7 +57,7 @@ export default function QuestionBankManager({ apiFetch, mode, onClose, onImport,
   const [activeBank, setActiveBank] = useState<Bank | null>(null);
   const [questions, setQuestions] = useState<BankQuestion[]>([]);
   const [bankForm, setBankForm] = useState<{ id?: string; name: string; description: string } | null>(null);
-  const [questionForm, setQuestionForm] = useState<{ id?: string; value: ReturnType<typeof newQuestionForm> } | null>(null);
+  const [questionForm, setQuestionForm] = useState<{ id?: string; value: QuestionFormValue } | null>(null);
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<string[]>([]);
   const [destinationBankId, setDestinationBankId] = useState("");
   const [openPickerBanks, setOpenPickerBanks] = useState<string[]>([]);
@@ -145,23 +144,14 @@ export default function QuestionBankManager({ apiFetch, mode, onClose, onImport,
     event.preventDefault();
     if (!activeBank || !questionForm) return;
     try {
-      const metadata = JSON.parse(questionForm.value.metadata || "{}");
-      if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) throw new Error("Additional metadata must be a JSON object.");
-      const options = questionForm.value.options.split("\n").map((option) => option.trim()).filter(Boolean);
-      const questionData = {
-        ...metadata,
-        question: questionForm.value.question,
-        options,
-        correct: questionForm.value.correct,
-        timeLimit: Number(questionForm.value.timeLimit),
-        ...(questionForm.value.explanation.trim() ? { explanation: questionForm.value.explanation.trim() } : {}),
-      };
+      const result = buildQuestionData(questionForm.value);
+      if (!result.questionData) throw new Error(result.error || "Check the question details and try again.");
       const path = questionForm.id
         ? `/api/question-banks/${activeBank.id}/questions/${questionForm.id}`
         : `/api/question-banks/${activeBank.id}/questions`;
       const saved = await readResponse<BankQuestion>(await apiFetch(path, {
         method: questionForm.id ? "PATCH" : "POST",
-        body: JSON.stringify({ questionData }),
+        body: JSON.stringify({ questionData: result.questionData }),
       }));
       setQuestions((current) => questionForm.id
         ? current.map((item) => item.id === saved.id ? saved : item)
@@ -183,8 +173,10 @@ export default function QuestionBankManager({ apiFetch, mode, onClose, onImport,
       id: item.id,
       value: {
         question: questionLabel(data),
-        options: Array.isArray(data.options) ? data.options.join("\n") : "",
-        correct: String(data.correct || ""),
+        options: Array.isArray(data.options) ? data.options.map(String) : ["", ""],
+        correctOptionIndex: Array.isArray(data.options)
+          ? data.options.findIndex((option) => String(option).toLocaleLowerCase("en") === String(data.correct || "").toLocaleLowerCase("en"))
+          : null,
         timeLimit: String(data.timeLimit || 20),
         explanation: typeof data.explanation === "string" ? data.explanation : "",
         metadata: JSON.stringify(metadata, null, 2),
@@ -310,7 +302,7 @@ export default function QuestionBankManager({ apiFetch, mode, onClose, onImport,
 
   const openEditor = (item?: BankQuestion) => {
     if (item) editQuestion(item);
-    else setQuestionForm({ value: newQuestionForm() });
+    else setQuestionForm({ value: createQuestionFormValue() });
     setError("");
   };
 
@@ -452,18 +444,55 @@ export default function QuestionBankManager({ apiFetch, mode, onClose, onImport,
       </div>}
 
       {questionForm && <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 p-3 sm:p-8" role="dialog" aria-modal="true" aria-labelledby="question-form-title">
-        <form onSubmit={(event) => void saveQuestion(event)} className="mx-auto w-full max-w-2xl space-y-4 rounded-2xl bg-white p-5 shadow-2xl sm:p-7">
-          <h3 id="question-form-title" className="text-xl font-bold text-slate-800">{questionForm.id ? "Edit question" : "Add question"}</h3>
-          <label className="block text-sm font-semibold text-slate-700">Question<input required maxLength={500} value={questionForm.value.question} onChange={(event) => setQuestionForm({ ...questionForm, value: { ...questionForm.value, question: event.target.value } })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label>
-          <label className="block text-sm font-semibold text-slate-700">Answer options <span className="font-normal text-slate-500">(one per line)</span><textarea required rows={4} value={questionForm.value.options} onChange={(event) => setQuestionForm({ ...questionForm, value: { ...questionForm.value, options: event.target.value } })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <label className="block text-sm font-semibold text-slate-700">Correct answer<input required maxLength={200} value={questionForm.value.correct} onChange={(event) => setQuestionForm({ ...questionForm, value: { ...questionForm.value, correct: event.target.value } })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label>
-            <label className="block text-sm font-semibold text-slate-700">Timer in seconds<input type="number" min={5} max={120} required value={questionForm.value.timeLimit} onChange={(event) => setQuestionForm({ ...questionForm, value: { ...questionForm.value, timeLimit: event.target.value } })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label>
+        <form onSubmit={(event) => void saveQuestion(event)} className="mx-auto max-h-[calc(100dvh-1.5rem)] w-full max-w-2xl space-y-4 overflow-y-auto rounded-2xl bg-white p-4 shadow-2xl sm:max-h-[calc(100dvh-4rem)] sm:space-y-5 sm:p-7">
+          <div>
+            <h3 id="question-form-title" className="text-xl font-bold text-slate-800">{questionForm.id ? "Edit question" : "Add question"}</h3>
+            <p className="mt-1 text-sm text-slate-500">Choose the correct answer with its circle. You can add up to {MAX_QUESTION_OPTIONS} options.</p>
           </div>
-          <label className="block text-sm font-semibold text-slate-700">Explanation <span className="font-normal text-slate-500">(optional)</span><textarea maxLength={4000} rows={2} value={questionForm.value.explanation} onChange={(event) => setQuestionForm({ ...questionForm, value: { ...questionForm.value, explanation: event.target.value } })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label>
-          <details><summary className="cursor-pointer text-sm font-semibold text-slate-700">Additional question metadata (JSON)</summary><textarea rows={4} value={questionForm.value.metadata} onChange={(event) => setQuestionForm({ ...questionForm, value: { ...questionForm.value, metadata: event.target.value } })} className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-xs" /></details>
+          <label className="block text-sm font-semibold text-slate-700">Question<textarea autoFocus required maxLength={500} rows={2} value={questionForm.value.question} onChange={(event) => setQuestionForm({ ...questionForm, value: { ...questionForm.value, question: event.target.value } })} placeholder="Write your question" className="mt-1 w-full min-w-0 resize-y rounded-xl border border-slate-300 px-3 py-3 text-base font-normal text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200" /></label>
+          <fieldset className="min-w-0 space-y-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <legend className="text-sm font-semibold text-slate-700">Answer options</legend>
+              <span className="text-xs text-slate-500">Select one correct answer</span>
+            </div>
+            {questionForm.value.options.map((option, index) => {
+              const letter = String.fromCharCode(65 + index);
+              const correct = questionForm.value.correctOptionIndex === index;
+              return <div key={index} className={`flex min-w-0 items-center gap-2 rounded-xl border-2 p-2 transition-colors ${correct ? "border-emerald-400 bg-emerald-50" : "border-slate-200 bg-white"}`}>
+                <label className={`flex min-h-11 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-lg px-2 text-sm font-bold ${correct ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-700"}`}>
+                  <input
+                    type="radio"
+                    name="correct-option"
+                    aria-label={`Mark option ${letter} as correct`}
+                    checked={correct}
+                    onChange={() => setQuestionForm({ ...questionForm, value: selectCorrectQuestionOption(questionForm.value, index) })}
+                    className="h-5 w-5 accent-emerald-600"
+                  />
+                  {letter}
+                </label>
+                <input type="text" maxLength={200} aria-label={`Option ${letter} answer`} value={option} onChange={(event) => setQuestionForm({ ...questionForm, value: { ...questionForm.value, options: questionForm.value.options.map((value, optionIndex) => optionIndex === index ? event.target.value : value) } })} placeholder={`Option ${letter}`} className="min-h-11 min-w-0 flex-1 rounded-lg border-0 bg-transparent px-2 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+                <button type="button" aria-label={`Remove option ${letter}`} disabled={questionForm.value.options.length <= 2} onClick={() => {
+                  const next = removeQuestionOption(questionForm.value.options, questionForm.value.correctOptionIndex, index);
+                  setQuestionForm({ ...questionForm, value: { ...questionForm.value, ...next } });
+                }} className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-xl text-slate-500 hover:bg-rose-50 hover:text-rose-700 disabled:cursor-not-allowed disabled:opacity-30">×</button>
+              </div>;
+            })}
+            <button type="button" disabled={questionForm.value.options.length >= MAX_QUESTION_OPTIONS} onClick={() => setQuestionForm({ ...questionForm, value: { ...questionForm.value, options: addQuestionOption(questionForm.value.options) } })} className="min-h-11 w-full rounded-xl border border-dashed border-indigo-300 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-50 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto">+ Add option</button>
+          </fieldset>
+          <fieldset>
+            <legend className="text-sm font-semibold text-slate-700">Question timer</legend>
+            <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-6">
+              {QUESTION_TIMER_PRESETS.map((seconds) => <button key={seconds} type="button" aria-pressed={Number(questionForm.value.timeLimit) === seconds} onClick={() => setQuestionForm({ ...questionForm, value: { ...questionForm.value, timeLimit: String(seconds) } })} className={`min-h-11 rounded-xl border px-2 text-sm font-semibold ${Number(questionForm.value.timeLimit) === seconds ? "border-indigo-600 bg-indigo-600 text-white" : "border-slate-200 bg-white text-slate-700 hover:border-indigo-300"}`}>{seconds}s</button>)}
+            </div>
+            <label className="mt-2 flex items-center gap-3 text-sm font-medium text-slate-700">Custom seconds<input type="number" min={5} max={120} required value={questionForm.value.timeLimit} onChange={(event) => setQuestionForm({ ...questionForm, value: { ...questionForm.value, timeLimit: event.target.value } })} className="min-h-11 w-28 rounded-xl border border-slate-300 px-3 text-base" /></label>
+          </fieldset>
+          <label className="block text-sm font-semibold text-slate-700">Explanation <span className="font-normal text-slate-500">(optional)</span><textarea maxLength={4000} rows={2} value={questionForm.value.explanation} onChange={(event) => setQuestionForm({ ...questionForm, value: { ...questionForm.value, explanation: event.target.value } })} className="mt-1 w-full min-w-0 rounded-xl border border-slate-300 px-3 py-3 text-base font-normal" /></label>
+          <details className="rounded-xl border border-slate-200 p-3">
+            <summary className="cursor-pointer text-sm font-semibold text-slate-700">Advanced settings</summary>
+            <label className="mt-3 block text-sm font-medium text-slate-600">Additional question metadata (JSON)<textarea rows={4} value={questionForm.value.metadata} onChange={(event) => setQuestionForm({ ...questionForm, value: { ...questionForm.value, metadata: event.target.value } })} className="mt-1 w-full min-w-0 rounded-lg border border-slate-300 px-3 py-2 font-mono text-xs" /></label>
+          </details>
           {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
-          <div className="flex justify-end gap-2"><button type="button" onClick={() => setQuestionForm(null)} className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold">Cancel</button><button type="submit" className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold text-white">Save question</button></div>
+          <div className="sticky bottom-0 flex flex-col-reverse gap-2 border-t border-slate-100 bg-white/95 pt-3 sm:flex-row sm:justify-end"><button type="button" onClick={() => setQuestionForm(null)} className="min-h-11 rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold">Cancel</button><button type="submit" className="min-h-11 rounded-xl bg-indigo-600 px-5 py-2 text-sm font-bold text-white">Save question</button></div>
         </form>
       </div>}
       {notice && <p role="status" className="mt-4 text-sm text-emerald-700">{notice}</p>}
