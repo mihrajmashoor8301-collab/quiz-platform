@@ -1,6 +1,6 @@
 export default [
   {
-    ignores: [".next/", "node_modules/", "dist/"],
+    ignores: [".next/", "out/", "node_modules/", "dist/", ".wrangler/"],
   },
   {
     rules: {

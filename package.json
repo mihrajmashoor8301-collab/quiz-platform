@@ -7,9 +7,13 @@
     "frontend"
   ],
   "scripts": {
-    "dev": "npm run dev --workspace=frontend",
-    "start": "node server.js",
-    "build": "npm run build --workspace=frontend",
+    "dev": "npm run dev:cf --workspace=frontend",
+    "dev:next": "npm run dev --workspace=frontend",
+    "start": "npm run preview:cf --workspace=frontend",
+    "build": "npm run build:cf --workspace=frontend",
+    "deploy": "npm run deploy:cf --workspace=frontend",
+    "supabase:start": "npx supabase start",
+    "supabase:stop": "npx supabase stop",
     "db-start": "npm run db:start --workspace=backend",
     "db-check": "npm run db:check --workspace=backend",
     "db-init": "npm run db:init --workspace=backend",
@@ -18,7 +22,7 @@
     "typecheck": "npm run typecheck --workspaces --if-present"
   },
   "engines": {
-    "node": ">=18",
+    "node": ">=22.12",
     "npm": ">=9"
   },
   "installStrategy": "parents"

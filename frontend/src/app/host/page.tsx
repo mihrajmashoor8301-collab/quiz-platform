@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { io, Socket } from "socket.io-client";
+import { createClient, type Session, type SupabaseClient } from "@supabase/supabase-js";
+import { createQuizSocket, type QuizSocket } from "../../lib/quiz-socket";
 import {
   Plus,
   Play,
@@ -76,7 +77,7 @@ const STORAGE_KEY_QUESTIONS = "quiz_host_questions";
 const STORAGE_KEY_DRAFT = "quiz_host_draft";
 const STORAGE_KEY_ACTIVE_ROOM = "quiz_host_active_room";
 
-export default function HostPage() {
+function HostDashboard({ session, supabase }: { session: Session; supabase: SupabaseClient }) {
   const [title, setTitle] = useState("My Live Quiz");
   const [maxParticipants, setMaxParticipants] = useState(50);
   const [room, setRoom] = useState<any>(null);
@@ -101,7 +102,7 @@ export default function HostPage() {
   const [questionTimeLimit, setQuestionTimeLimit] = useState(20);
 
   // Live Game States: "setup" | "lobby" | "question" | "results" | "finished"
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const [socket, setSocket] = useState<QuizSocket | null>(null);
   const [gameState, setGameState] = useState<"setup" | "lobby" | "question" | "results" | "finished">("setup");
   const [players, setPlayers] = useState<Player[]>([]);
   const [activeQuestion, setActiveQuestion] = useState<any>(null);
@@ -113,7 +114,14 @@ export default function HostPage() {
 
   const getBackendUrl = () => {
     if (typeof window !== "undefined") return window.location.origin;
-    return process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
+    return "http://localhost:3000";
+  };
+
+  const apiFetch = async (path: string, init: RequestInit = {}) => {
+    const headers = new Headers(init.headers);
+    headers.set("Authorization", `Bearer ${session.access_token}`);
+    if (init.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+    return fetch(path, { ...init, headers, cache: "no-store" });
   };
 
   const syncToServer = (
@@ -122,8 +130,7 @@ export default function HostPage() {
     updatedTime?: number
   ) => {
     try {
-      const backendUrl = getBackendUrl();
-      fetch(`${backendUrl}/saved-quiz`, {
+      apiFetch("/api/saved-quiz", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -137,11 +144,10 @@ export default function HostPage() {
   };
 
   const connectHostSocket = (roomPin: string, initialRoomObj?: any) => {
-    const backendUrl = getBackendUrl();
-    const s = io(backendUrl, { transports: ["websocket", "polling"] });
+    const s = createQuizSocket(roomPin);
 
     s.on("connect", () => {
-      s.emit("join-room", { roomPin, isHost: true });
+      s.emit("join-room", { roomPin, isHost: true, token: session.access_token });
     });
 
     s.on("host-joined", (data) => {
@@ -207,8 +213,6 @@ export default function HostPage() {
 
   // Restore saved state from server and localStorage on mount
   useEffect(() => {
-    const backendUrl = getBackendUrl();
-
     // 1. Instant local restore from localStorage
     try {
       const savedTitle = localStorage.getItem(STORAGE_KEY_TITLE);
@@ -247,7 +251,7 @@ export default function HostPage() {
     }
 
     // 2. Authoritative server sync (loads saved questions from backend disk)
-    fetch(`${backendUrl}/saved-quiz`)
+    apiFetch("/api/saved-quiz")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data) {
@@ -281,7 +285,7 @@ export default function HostPage() {
       if (savedRoom) {
         const parsed = JSON.parse(savedRoom);
         if (parsed?.pin) {
-          fetch(`${backendUrl}/rooms/${parsed.pin}`)
+          apiFetch(`/api/rooms/${parsed.pin}`)
             .then((res) => (res.ok ? res.json() : null))
             .then((data) => {
               if (data && data.status !== "finished") {
@@ -348,7 +352,7 @@ export default function HostPage() {
   }, [prompt, options, correctOptionIndex, questionTimeLimit, isLoaded]);
 
   useEffect(() => {
-    fetch(`${getBackendUrl()}/network-info`)
+    fetch("/api/network-info")
       .then((res) => res.json())
       .then((data) => setNetworkInfo(data))
       .catch(() => {});
@@ -516,8 +520,13 @@ export default function HostPage() {
     setLoading(true);
 
     try {
-      const backendUrl = getBackendUrl();
-      const res = await fetch(`${backendUrl}/rooms`, {
+      const savedRes = await apiFetch("/api/saved-quiz", {
+        method: "POST",
+        body: JSON.stringify({ title, maxParticipants, globalTimeLimit, questions }),
+      });
+      if (!savedRes.ok) throw new Error((await savedRes.json()).error || "Could not save quiz.");
+
+      const res = await apiFetch("/api/rooms", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title, maxParticipants }),
@@ -538,20 +547,6 @@ export default function HostPage() {
           JSON.stringify({ pin: created.pin, title: created.title })
         );
       } catch {}
-
-      // Upload configured questions to room
-      for (const q of questions) {
-        await fetch(`${backendUrl}/rooms/${created.pin}/questions`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            question: q.question,
-            options: q.options,
-            timeLimit: q.timeLimit,
-            correct: [q.correct],
-          }),
-        });
-      }
 
       // Connect Host Socket & join room
       connectHostSocket(created.pin, created);
@@ -595,6 +590,19 @@ export default function HostPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-12">
+      <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm">
+        <span className="truncate text-slate-600">Signed in as <strong>{session.user.email}</strong></span>
+        <button
+          type="button"
+          onClick={async () => {
+            socket?.disconnect();
+            await supabase.auth.signOut();
+          }}
+          className="ml-3 rounded-lg px-3 py-1.5 font-semibold text-indigo-700 hover:bg-indigo-50"
+        >
+          Sign out
+        </button>
+      </div>
       {/* ----------------- SETUP VIEW ----------------- */}
       {gameState === "setup" && (
         <div className="space-y-6">
@@ -1320,6 +1328,110 @@ export default function HostPage() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+export default function HostPage() {
+  const [supabase, setSupabase] = useState<SupabaseClient | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [initializing, setInitializing] = useState(true);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [creatingAccount, setCreatingAccount] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    let subscription: { unsubscribe: () => void } | undefined;
+    fetch("/api/config", { cache: "no-store" })
+      .then(async (response) => {
+        const config = await response.json();
+        if (!response.ok) throw new Error(config.error || "Could not load authentication settings.");
+        const client = createClient(config.supabaseUrl, config.supabaseAnonKey, {
+          auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
+        });
+        if (!active) return;
+        setSupabase(client);
+        const { data, error: sessionError } = await client.auth.getSession();
+        if (sessionError) throw sessionError;
+        if (active) setSession(data.session);
+        const listener = client.auth.onAuthStateChange((_event, currentSession) => {
+          if (active) setSession(currentSession);
+        });
+        subscription = listener.data.subscription;
+      })
+      .catch((cause) => {
+        if (active) setError(cause instanceof Error ? cause.message : "Could not load authentication settings.");
+      })
+      .finally(() => {
+        if (active) setInitializing(false);
+      });
+    return () => {
+      active = false;
+      subscription?.unsubscribe();
+    };
+  }, []);
+
+  const handleAuth = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setError("");
+    setNotice("");
+    if (!supabase) return;
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      if (creatingAccount) {
+        const { data, error: authError } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: { emailRedirectTo: `${window.location.origin}/host` },
+        });
+        if (authError) throw authError;
+        if (!data.session) setNotice("Check your email to confirm your account, then sign in here.");
+      } else {
+        const { error: authError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+        if (authError) throw authError;
+      }
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Authentication failed.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (initializing) {
+    return <div className="mx-auto mt-12 max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center text-slate-500">Loading host sign-in…</div>;
+  }
+  if (session && supabase) return <HostDashboard session={session} supabase={supabase} />;
+
+  return (
+    <div className="mx-auto mt-12 max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-md">
+      <h1 className="text-center text-2xl font-bold text-slate-800">Host sign in</h1>
+      <p className="mt-2 text-center text-sm text-slate-500">Create an account or sign in to save and host quizzes.</p>
+      {error && <div role="alert" className="mt-5 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
+      {notice && <div role="status" className="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</div>}
+      <form onSubmit={handleAuth} className="mt-6 space-y-4">
+        <label className="block text-sm font-medium text-slate-700">
+          Email
+          <input type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5" />
+        </label>
+        <label className="block text-sm font-medium text-slate-700">
+          Password
+          <input type="password" autoComplete={creatingAccount ? "new-password" : "current-password"} minLength={8} required value={password} onChange={(event) => setPassword(event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5" />
+        </label>
+        <button disabled={submitting || !supabase} className="w-full rounded-xl bg-indigo-600 px-4 py-3 font-bold text-white transition hover:bg-indigo-700 disabled:opacity-50">
+          {submitting ? "Please wait…" : creatingAccount ? "Create host account" : "Sign in"}
+        </button>
+      </form>
+      <button type="button" onClick={() => { setCreatingAccount((value) => !value); setError(""); setNotice(""); }} className="mt-5 w-full text-center text-sm font-semibold text-indigo-700 hover:underline">
+        {creatingAccount ? "Already registered? Sign in" : "New host? Create an account"}
+      </button>
     </div>
   );
 }

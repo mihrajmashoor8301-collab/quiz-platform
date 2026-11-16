@@ -18,6 +18,8 @@ dist/
 .next/
 out/
 *.tsbuildinfo
+.wrangler/
+supabase/.temp/
 
 # Env files (may hold secrets)
 .env
@@ -26,6 +28,10 @@ out/
 *.env.local
 *.env.development.local
 *.env.test.local
+**/.dev.vars
+**/.dev.vars.*
+!.dev.vars.example
+!**/.dev.vars.example
 !.env.example
 !backend/.env.example
 !frontend/.env.example

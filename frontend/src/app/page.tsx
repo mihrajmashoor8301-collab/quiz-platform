@@ -44,11 +44,7 @@ function JoinForm() {
 
     setLoading(true);
     try {
-      const backendUrl =
-        typeof window !== "undefined"
-          ? window.location.origin
-          : process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
-      const res = await fetch(`${backendUrl}/rooms/${cleanPin}`);
+      const res = await fetch(`/api/rooms/${cleanPin}`, { cache: "no-store" });
       if (!res.ok) {
         throw new Error("Room not found. Check the PIN and try again.");
       }
@@ -57,7 +53,7 @@ function JoinForm() {
         throw new Error("This quiz has already finished.");
       }
       localStorage.setItem("quiz_nickname", cleanNick);
-      router.push(`/room/${cleanPin}?nickname=${encodeURIComponent(cleanNick)}`);
+      router.push(`/room?pin=${cleanPin}&nickname=${encodeURIComponent(cleanNick)}`);
     } catch (err: any) {
       setError(err.message || "Failed to join room.");
       setLoading(false);

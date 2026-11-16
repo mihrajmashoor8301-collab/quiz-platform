@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState, use, useRef, Suspense } from "react";
+import { useEffect, useState, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { io, Socket } from "socket.io-client";
+import { createQuizSocket, type QuizSocket } from "../../lib/quiz-socket";
 import {
   Clock,
   CheckCircle2,
@@ -12,11 +12,12 @@ import {
   Sparkles,
 } from "lucide-react";
 
-function RoomContent({ pin }: { pin: string }) {
+function RoomContent() {
   const searchParams = useSearchParams();
+  const pin = (searchParams.get("pin") || "").replace(/\D/g, "").slice(0, 6);
   const nickname = searchParams.get("nickname") || "Player";
 
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const [socket, setSocket] = useState<QuizSocket | null>(null);
   const [connected, setConnected] = useState(false);
   const [roomTitle, setRoomTitle] = useState("Live Quiz");
 
@@ -31,32 +32,45 @@ function RoomContent({ pin }: { pin: string }) {
   const [myRank, setMyRank] = useState(1);
   const [wasCorrect, setWasCorrect] = useState<boolean | null>(null);
 
-  const getBackendUrl = () => {
-    if (typeof window !== "undefined") return window.location.origin;
-    return process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
-  };
-
-  const getPlayerId = () => {
-    if (typeof window === "undefined") return "";
-    let pid = localStorage.getItem(`quiz_pid_${pin}`);
-    if (!pid) {
-      pid = "p_" + Math.random().toString(36).slice(2, 9) + Date.now().toString(36);
-      localStorage.setItem(`quiz_pid_${pin}`, pid);
-    }
-    return pid;
-  };
-
   useEffect(() => {
-    const s = io(getBackendUrl(), {
-      transports: ["websocket", "polling"],
-    });
+    if (!/^\d{6}$/.test(pin)) return;
+    let active = true;
+    let s: QuizSocket | null = null;
+    const connect = async () => {
+      const key = `quiz_player_session_${pin}`;
+      let saved: { playerId: string; sessionToken: string } | null = null;
+      try { saved = JSON.parse(localStorage.getItem(key) || "null"); } catch {}
+      if (!saved?.playerId || !saved?.sessionToken) {
+        const bytes = new Uint8Array(32);
+        crypto.getRandomValues(bytes);
+        const sessionToken = btoa(Array.from(bytes, (byte) => String.fromCharCode(byte)).join("") )
+          .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+        saved = { playerId: crypto.randomUUID(), sessionToken };
+        localStorage.setItem(key, JSON.stringify(saved));
+      }
+      const response = await fetch(`/api/rooms/${pin}/join`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ...saved, nickname }),
+      });
+      const joined = await response.json();
+      if (!response.ok) throw new Error(joined.error || "Could not join this quiz room.");
+      if (!active) return;
+      const client = createQuizSocket(pin);
+      s = client;
+      client.on("connect", () => {
+        setConnected(true);
+        client.emit("join-room", {
+          roomPin: pin,
+          nickname,
+          playerId: joined.playerId,
+          playerToken: joined.sessionToken,
+        });
+      });
+      client.on("disconnect", () => setConnected(false));
+      client.on("connect_error", () => setConnected(false));
 
-    s.on("connect", () => {
-      setConnected(true);
-      s.emit("join-room", { roomPin: pin, nickname, playerId: getPlayerId() });
-    });
-
-    s.on("joined", (data) => {
+    client.on("joined", (data) => {
       if (data.room?.title) setRoomTitle(data.room.title);
       if (data.participant) {
         if (typeof data.participant.score === "number") setMyScore(data.participant.score);
@@ -68,7 +82,7 @@ function RoomContent({ pin }: { pin: string }) {
       }
     });
 
-    s.on("question-started", (data) => {
+    client.on("question-started", (data) => {
       setCurrentQuestion(data);
       setTimeRemaining(data.timeRemaining);
 
@@ -84,21 +98,21 @@ function RoomContent({ pin }: { pin: string }) {
       }
     });
 
-    s.on("timer-tick", (data: { timeRemaining: number }) => {
+    client.on("timer-tick", (data: { timeRemaining: number }) => {
       setTimeRemaining(data.timeRemaining);
     });
 
-    s.on("answer-ack", () => {
+    client.on("answer-ack", () => {
       setPlayerState("submitted");
     });
 
-    s.on("question-results", (data) => {
+    client.on("question-results", (data) => {
       setRoundResult(data);
 
       const norm = (str: any) => String(str ?? "").trim().toLowerCase();
       const myAnswer = selectedAnswerRef.current;
       const myEntry = data.leaderboard?.find(
-        (p: any) => p.id === s.id || (p.nickname && norm(p.nickname) === norm(nickname))
+        (p: any) => p.id === client.id || (p.nickname && norm(p.nickname) === norm(nickname))
       );
 
       // Determine accuracy from server evaluation or matching answer text
@@ -114,7 +128,7 @@ function RoomContent({ pin }: { pin: string }) {
       // Find my updated score and rank from leaderboard
       if (data.leaderboard) {
         const rankIndex = data.leaderboard.findIndex(
-          (p: any) => p.id === s.id || (p.nickname && norm(p.nickname) === norm(nickname))
+          (p: any) => p.id === client.id || (p.nickname && norm(p.nickname) === norm(nickname))
         );
         if (rankIndex !== -1) {
           setMyRank(rankIndex + 1);
@@ -125,11 +139,11 @@ function RoomContent({ pin }: { pin: string }) {
       setPlayerState("results");
     });
 
-    s.on("quiz-finished", (data) => {
+    client.on("quiz-finished", (data) => {
       if (data.leaderboard) {
         const norm = (str: any) => String(str ?? "").trim().toLowerCase();
         const rankIndex = data.leaderboard.findIndex(
-          (p: any) => p.id === s.id || (p.nickname && norm(p.nickname) === norm(nickname))
+          (p: any) => p.id === client.id || (p.nickname && norm(p.nickname) === norm(nickname))
         );
         if (rankIndex !== -1) {
           setMyRank(rankIndex + 1);
@@ -139,12 +153,25 @@ function RoomContent({ pin }: { pin: string }) {
       setPlayerState("finished");
     });
 
-    setSocket(s);
+    setSocket(client);
+    };
+    connect().catch((error) => {
+      if (active) setRoomTitle(error instanceof Error ? error.message : "Could not join this room.");
+    });
 
     return () => {
-      s.disconnect();
+      active = false;
+      s?.disconnect();
     };
   }, [pin, nickname]);
+
+  useEffect(() => {
+    if (playerState !== "question" || !currentQuestion?.deadline) return;
+    const update = () => setTimeRemaining(Math.max(0, Math.ceil((currentQuestion.deadline - Date.now()) / 1000)));
+    update();
+    const timer = setInterval(update, 250);
+    return () => clearInterval(timer);
+  }, [playerState, currentQuestion]);
 
   const handleSubmit = (option: string) => {
     if (playerState !== "question" || !socket || !currentQuestion) return;
@@ -359,8 +386,7 @@ function RoomContent({ pin }: { pin: string }) {
   );
 }
 
-export default function RoomPage({ params }: { params: Promise<{ pin: string }> }) {
-  const resolvedParams = use(params);
+export default function RoomPage() {
   return (
     <Suspense
       fallback={
@@ -369,7 +395,7 @@ export default function RoomPage({ params }: { params: Promise<{ pin: string }> 
         </div>
       }
     >
-      <RoomContent pin={resolvedParams.pin} />
+      <RoomContent />
     </Suspense>
   );
 }
