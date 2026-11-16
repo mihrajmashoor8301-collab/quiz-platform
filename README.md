@@ -40,13 +40,13 @@ Static export keeps this Next.js 15 app compatible with Workers static assets an
 The Worker is configured in `frontend/wrangler.jsonc`. Cloudflare Workers Free currently includes static asset serving, Durable Objects, and a daily Durable Object request allowance; review the current [Workers pricing and limits](https://developers.cloudflare.com/workers/platform/pricing/) before setting expected class size or traffic. The Worker sends question deadlines once; clients render the countdown locally, and the Durable Object alarm closes the question. This keeps timer UI responsive without broadcasting a message every second.
 
 1. Create a Cloudflare account and enable Workers. Install/configure Wrangler locally with `npx wrangler login` if you want to deploy from your machine.
-2. Set the Cloudflare account ID in `frontend/wrangler.jsonc` only if Wrangler prompts for it or your account requires it.
-3. Add these Worker secrets in **Workers & Pages → quiz-platform-cloudflare → Settings → Variables and Secrets**:
+2. Configure the GitHub Actions credentials below, then run **Actions → Deploy Cloudflare Worker → Run workflow** (or deploy locally with `npm run deploy`). This first deployment creates the Worker and its Durable Object namespace.
+3. In **Workers & Pages → quiz-platform-cloudflare → Settings → Variables and Secrets**, add these Worker secrets:
    - `SUPABASE_URL`
    - `SUPABASE_ANON_KEY`
    - `SUPABASE_SERVICE_ROLE_KEY`
-4. Deploy manually with `npm run deploy`, or configure the GitHub Actions workflow below.
-5. Open the `workers.dev` URL shown by Cloudflare and test host sign-in, quiz saving, room creation, joining, and a complete quiz.
+4. Copy the deployed `workers.dev` URL into Supabase Auth's site URL and allowed redirect URLs, along with the local URL if needed.
+5. Open the `workers.dev` URL and test host sign-in, quiz saving, room creation, joining, and a complete quiz.
 
 The GitHub Actions workflow validates pushes to `cloudflare-deployment` and deploys once repository Actions secrets `CLOUDFLARE_API_TOKEN` (Workers Scripts: Edit) and `CLOUDFLARE_ACCOUNT_ID` are configured. Until both Cloudflare secrets exist, it runs tests and builds but skips deployment. Set the three Supabase values directly as Worker secrets in Cloudflare; they do not need to be copied into GitHub. GitHub integration uses the official Wrangler CLI; no paid build service is required.
 
