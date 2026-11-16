@@ -1,5 +1,6 @@
 import { normalizeQuestions } from "../durable-objects/quiz-room-core.js";
 import { authenticateHost, HttpError, jsonResponse, readJson, supabaseRest } from "./supabase.js";
+import { handleQuestionBankRequest } from "./question-banks.js";
 
 function getRoomStub(env, pin) {
   const id = env.ROOMS.idFromName(pin);
@@ -49,12 +50,19 @@ async function handleSavedQuiz(request, env, user) {
       title: row.title,
       maxParticipants: row.max_participants,
       globalTimeLimit: row.global_time_limit,
-      questions: row.questions.map((question) => ({
-        question: question.question ?? question.text,
-        options: question.options,
-        correct: question.correct,
-        timeLimit: question.timeLimit,
-      })),
+      questions: row.questions.map((question) => {
+        const metadata = { ...question };
+        delete metadata.id;
+        delete metadata.question;
+        delete metadata.text;
+        return {
+          ...metadata,
+          question: question.question ?? question.text,
+          options: question.options,
+          correct: question.correct,
+          timeLimit: question.timeLimit,
+        };
+      }),
       updatedAt: row.updated_at,
     } : { title: "My Live Quiz", maxParticipants: 50, globalTimeLimit: 20, questions: [] });
   }
@@ -70,12 +78,19 @@ async function handleSavedQuiz(request, env, user) {
       title: quiz.title,
       max_participants: quiz.maxParticipants,
       global_time_limit: quiz.globalTimeLimit,
-      questions: quiz.questions.map((question) => ({
-        question: question.text,
-        options: question.options,
-        correct: question.correct,
-        timeLimit: question.timeLimit,
-      })),
+      questions: quiz.questions.map((question) => {
+        const metadata = { ...question };
+        delete metadata.id;
+        delete metadata.question;
+        delete metadata.text;
+        return {
+          ...metadata,
+          question: question.question ?? question.text,
+          options: question.options,
+          correct: question.correct,
+          timeLimit: question.timeLimit,
+        };
+      }),
       updated_at: new Date().toISOString(),
     }),
   });
@@ -173,7 +188,7 @@ function proxyRequest(url, method, body, headers = {}) {
 
 export async function handleApiRequest(request, env) {
   const url = new URL(request.url);
-  if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: { Allow: "GET, POST, OPTIONS" } });
+  if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: { Allow: "GET, POST, PATCH, DELETE, OPTIONS" } });
   if (url.pathname === "/api/health" && request.method === "GET") {
     return jsonResponse({ status: "ok", service: "quiz-platform-worker" });
   }
@@ -192,6 +207,10 @@ export async function handleApiRequest(request, env) {
   if (url.pathname === "/api/rooms") {
     const user = await authenticateHost(request, env);
     return handleCreateRoom(request, env, user);
+  }
+  if (url.pathname === "/api/question-banks" || url.pathname.startsWith("/api/question-banks/")) {
+    const user = await authenticateHost(request, env);
+    return handleQuestionBankRequest(request, env, user, (key, limit, windowMs) => rateLimit(env, key, limit, windowMs));
   }
 
   const roomMatch = /^\/api\/rooms\/([0-9]{6})(?:\/(join|questions|ws))?$/.exec(url.pathname);

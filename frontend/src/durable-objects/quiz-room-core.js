@@ -37,7 +37,8 @@ export function normalizeQuestions(input) {
     if (!Number.isInteger(timeLimit) || timeLimit < 5 || timeLimit > 120) {
       throw new Error(`Question ${index + 1} timer must be from 5 to 120 seconds.`);
     }
-    return { id: index + 1, text, options, correct, timeLimit };
+    const metadata = item && typeof item === "object" && !Array.isArray(item) ? item : {};
+    return { ...metadata, id: index + 1, text, options, correct, timeLimit };
   });
 }
 

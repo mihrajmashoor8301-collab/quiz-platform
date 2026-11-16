@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { createClient, type Session, type SupabaseClient } from "@supabase/supabase-js";
 import { createQuizSocket, type QuizSocket } from "../../lib/quiz-socket";
+import { cloneQuestionsForQuiz } from "../../lib/question-bank-utils";
+import QuestionBankManager from "./question-bank-manager";
 import {
   Plus,
   Play,
@@ -31,6 +33,8 @@ export interface QuestionItem {
   options: string[];
   correct: string;
   timeLimit: number;
+  explanation?: string;
+  [metadata: string]: unknown;
 }
 
 export interface Player {
@@ -93,6 +97,8 @@ function HostDashboard({ session, supabase }: { session: Session; supabase: Supa
 
   // Configured Questions List (Empty by default - no hardcoded test questions)
   const [questions, setQuestions] = useState<QuestionItem[]>([]);
+  const [questionBankOpen, setQuestionBankOpen] = useState(false);
+  const [questionPickerOpen, setQuestionPickerOpen] = useState(false);
 
   // Question Form State (for adding / editing)
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -164,7 +170,8 @@ function HostDashboard({ session, supabase }: { session: Session; supabase: Supa
       if (data.players) setPlayers(data.players);
       if (data.questions && data.questions.length > 0) {
         const mappedQuestions: QuestionItem[] = data.questions.map((q: any) => ({
-          question: q.text || q.question?.text || "Question",
+          ...Object.fromEntries(Object.entries(q).filter(([key]) => !["id", "text", "question"].includes(key))),
+          question: q.text || (typeof q.question === "string" ? q.question : q.question?.text) || "Question",
           options: q.options || [],
           correct: Array.isArray(q.correct) ? q.correct[0] : q.correct || q.options?.[0] || "",
           timeLimit: q.timeLimit || 20,
@@ -395,6 +402,7 @@ function HostDashboard({ session, supabase }: { session: Session; supabase: Supa
     }
 
     const finalQuestion: QuestionItem = {
+      ...(editingIndex !== null ? questions[editingIndex] : {}),
       question: prompt.trim(),
       options: trimmedOptions.filter((o) => o.length > 0),
       correct: selectedCorrectText,
@@ -604,7 +612,10 @@ function HostDashboard({ session, supabase }: { session: Session; supabase: Supa
         </button>
       </div>
       {/* ----------------- SETUP VIEW ----------------- */}
-      {gameState === "setup" && (
+      {gameState === "setup" && questionBankOpen && (
+        <QuestionBankManager apiFetch={apiFetch} mode="manage" onClose={() => setQuestionBankOpen(false)} />
+      )}
+      {gameState === "setup" && !questionBankOpen && (
         <div className="space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -638,6 +649,13 @@ function HostDashboard({ session, supabase }: { session: Session; supabase: Supa
                 <span>Load Sample Trivia (3 Questions)</span>
               </button>
             )}
+            <button
+              type="button"
+              onClick={() => setQuestionBankOpen(true)}
+              className="inline-flex items-center gap-2 rounded-xl border border-indigo-200 bg-white px-4 py-2 text-xs font-bold text-indigo-700 transition hover:bg-indigo-50"
+            >
+              Question Bank
+            </button>
           </div>
 
           {error && (
@@ -897,6 +915,15 @@ function HostDashboard({ session, supabase }: { session: Session; supabase: Supa
               )}
             </div>
 
+            <button
+              type="button"
+              onClick={() => setQuestionPickerOpen(true)}
+              disabled={questions.length >= 50}
+              className="rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-semibold text-indigo-700 disabled:opacity-40"
+            >
+              Add from Question Bank
+            </button>
+
             {questions.length === 0 ? (
               <div className="p-8 text-center border-2 border-dashed border-slate-200 rounded-2xl space-y-3">
                 <div className="w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 mx-auto flex items-center justify-center">
@@ -1020,6 +1047,26 @@ function HostDashboard({ session, supabase }: { session: Session; supabase: Supa
             </div>
           </div>
         </div>
+      )}
+
+      {gameState === "setup" && questionPickerOpen && (
+        <QuestionBankManager
+          apiFetch={apiFetch}
+          mode="select"
+          maxSelection={Math.max(0, 50 - questions.length)}
+          onClose={() => setQuestionPickerOpen(false)}
+          onImport={(bankQuestions) => {
+            const imported: QuestionItem[] = cloneQuestionsForQuiz(bankQuestions).map((question) => ({
+              ...question,
+              question: String(question.question ?? question.text ?? ""),
+              options: Array.isArray(question.options) ? question.options.map(String) : [],
+              correct: String(question.correct ?? ""),
+              timeLimit: Number(question.timeLimit ?? globalTimeLimit),
+            }));
+            setQuestions((current) => [...current, ...imported]);
+            setQuestionPickerOpen(false);
+          }}
+        />
       )}
 
       {/* ----------------- LOBBY VIEW ----------------- */}
