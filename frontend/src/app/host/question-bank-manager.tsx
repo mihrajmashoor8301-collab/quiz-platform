@@ -11,6 +11,7 @@ import {
   removeQuestionOption,
   selectCorrectQuestionOption,
 } from "./question-editor-utils";
+import { toggleBankQuestionSelection } from "./question-picker-utils";
 
 type ApiFetch = (path: string, init?: RequestInit) => Promise<Response>;
 type Bank = {
@@ -280,6 +281,24 @@ export default function QuestionBankManager({ apiFetch, mode, onClose, onImport,
     }
   };
 
+  const selectAllBankQuestions = async (bank: Bank) => {
+    let rows = pickerQuestions[bank.id];
+    if (!rows) {
+      try {
+        rows = await readResponse<BankQuestion[]>(await apiFetch(`/api/question-banks/${bank.id}/questions`));
+        setPickerQuestions((current) => ({ ...current, [bank.id]: rows || [] }));
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : "Could not load questions.");
+        return;
+      }
+    }
+    const result = toggleBankQuestionSelection(pickerSelection, rows, maxSelection);
+    setPickerSelection(result.selection);
+    setError(result.overflow > 0
+      ? `Selected as many as fit. Your quiz has room for up to ${maxSelection} more questions.`
+      : "");
+  };
+
   const togglePickerQuestion = (item: BankQuestion) => {
     setPickerSelection((current) => {
       if (current[item.id]) {
@@ -325,11 +344,18 @@ export default function QuestionBankManager({ apiFetch, mode, onClose, onImport,
           <div className="mt-4 max-h-[42vh] space-y-2 overflow-y-auto">
             {bankLoading ? <p className="py-6 text-center text-sm text-slate-500">Loading your banks…</p> : filteredBanks.length === 0 ? <p className="py-6 text-center text-sm text-slate-500">No question banks match this search.</p> : filteredBanks.map((bank) => {
               const isOpen = openPickerBanks.includes(bank.id);
+              const bankQuestions = pickerQuestions[bank.id] || [];
+              const allBankQuestionsSelected = bankQuestions.length > 0 && bankQuestions.every((item) => pickerSelection[item.id]);
               return <section key={bank.id} className="overflow-hidden rounded-xl border border-slate-200">
-                <button type="button" onClick={() => void togglePickerBank(bank)} className="flex w-full items-center justify-between gap-3 bg-slate-50 px-4 py-3 text-left hover:bg-indigo-50">
-                  <span className="font-semibold text-slate-800">{isOpen ? "▾" : "▸"} {bank.name}</span>
-                  <span className="text-xs text-slate-500">{bank.questionCount} questions</span>
-                </button>
+                <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 sm:px-4">
+                  <button type="button" onClick={() => void togglePickerBank(bank)} className="flex min-h-10 min-w-0 flex-1 items-center justify-between gap-3 text-left hover:text-indigo-700">
+                    <span className="truncate font-semibold text-slate-800">{isOpen ? "▾" : "▸"} {bank.name}</span>
+                    <span className="shrink-0 text-xs text-slate-500">{bank.questionCount} questions</span>
+                  </button>
+                  <button type="button" disabled={bank.questionCount === 0} onClick={() => void selectAllBankQuestions(bank)} className="min-h-9 shrink-0 rounded-lg px-2 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-40">
+                    {allBankQuestionsSelected ? "Clear all" : "Select all"}
+                  </button>
+                </div>
                 {isOpen && <div className="divide-y divide-slate-100">
                   {!pickerQuestions[bank.id] ? <p className="p-4 text-sm text-slate-500">Loading questions…</p> : pickerQuestions[bank.id].length === 0 ? <p className="p-4 text-sm text-slate-500">This bank is empty.</p> : pickerQuestions[bank.id].map((item) => {
                     const checked = Boolean(pickerSelection[item.id]);

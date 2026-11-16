@@ -6,6 +6,7 @@ import {
   removeQuestionOption,
   selectCorrectQuestionOption,
 } from "./question-editor-utils";
+import { toggleBankQuestionSelection } from "./question-picker-utils";
 
 describe("question builder option controls and validation", () => {
   it("starts with A-D and adds and removes options while preserving the minimum and selected answer", () => {
@@ -70,5 +71,28 @@ describe("question builder option controls and validation", () => {
     expect(buildQuestionData(value).error).toMatch(/timer/i);
     value = { ...value, timeLimit: "20" };
     expect(buildQuestionData(value).error).toMatch(/valid JSON/i);
+  });
+});
+
+describe("question bank picker bulk selection", () => {
+  it("selects a bank, respects the quiz selection limit, and clears only that bank", () => {
+    const bankOne = [
+      { id: "one-a", questionData: { question: "A" } },
+      { id: "one-b", questionData: { question: "B" } },
+    ];
+    const bankTwo = [
+      { id: "two-a", questionData: { question: "C" } },
+      { id: "two-b", questionData: { question: "D" } },
+    ];
+    const first = toggleBankQuestionSelection({}, bankOne, 3);
+    expect(Object.keys(first.selection)).toEqual(["one-a", "one-b"]);
+
+    const second = toggleBankQuestionSelection(first.selection, bankTwo, 3);
+    expect(Object.keys(second.selection)).toHaveLength(3);
+    expect(second.overflow).toBe(1);
+
+    const cleared = toggleBankQuestionSelection(second.selection, bankOne, 3);
+    expect(cleared.selection).toEqual({ "two-a": { question: "C" } });
+    expect(cleared.overflow).toBe(0);
   });
 });
