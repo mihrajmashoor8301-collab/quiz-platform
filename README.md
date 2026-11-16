@@ -1,6 +1,6 @@
 # Quiz Platform
 
-A multiplayer quiz app built with Next.js 15 and React 19. The production deployment exports the UI as static assets, serves them from a Cloudflare Worker, keeps live room state and WebSockets in Durable Objects, and stores saved quizzes and results in Supabase.
+A multiplayer quiz app built with Next.js 16 and React 19. The production deployment exports the UI as static assets, serves them from a Cloudflare Worker, keeps live room state and WebSockets in Durable Objects, and stores saved quizzes and results in Supabase.
 
 ## Local development
 
