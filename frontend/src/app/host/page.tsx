@@ -35,6 +35,8 @@ import {
   FileCode,
   HelpCircle,
   ExternalLink,
+  StopCircle,
+  Pause,
 } from "lucide-react";
 
 export interface QuestionItem {
@@ -95,6 +97,7 @@ const STORAGE_KEY_GLOBAL_TIME = "quiz_host_global_time";
 const STORAGE_KEY_QUESTIONS = "quiz_host_questions";
 const STORAGE_KEY_DRAFT = "quiz_host_draft";
 const STORAGE_KEY_ACTIVE_ROOM = "quiz_host_active_room";
+const STORAGE_KEY_AUTO_ADVANCE = "quiz_host_auto_advance";
 
 function HostDashboard({ session, supabase }: { session: Session; supabase: SupabaseClient }) {
   const [title, setTitle] = useState("My Live Quiz");
@@ -106,6 +109,12 @@ function HostDashboard({ session, supabase }: { session: Session; supabase: Supa
   const [copiedLink, setCopiedLink] = useState(false);
   const [showQr, setShowQr] = useState(false);
   const [networkInfo, setNetworkInfo] = useState<{ primaryIp?: string; wifiUrl?: string } | null>(null);
+
+  // Auto-advance & Stop Modal States
+  const [autoAdvance, setAutoAdvance] = useState(true);
+  const [autoCountdown, setAutoCountdown] = useState<number | null>(null);
+  const [autoPaused, setAutoPaused] = useState(false);
+  const [stopModalOpen, setStopModalOpen] = useState(false);
 
   // Global Time Setting
   const [globalTimeLimit, setGlobalTimeLimit] = useState(20);
@@ -229,13 +238,27 @@ function HostDashboard({ session, supabase }: { session: Session; supabase: Supa
       setGameState("finished");
     });
 
+    s.on("quiz-cancelled", () => {
+      handleExitToEditor();
+    });
+
     setSocket(s);
     return s;
+  };
+
+  const toggleAutoAdvance = (val: boolean) => {
+    setAutoAdvance(val);
+    try {
+      localStorage.setItem(STORAGE_KEY_AUTO_ADVANCE, String(val));
+    } catch {}
   };
 
   // Restore saved state from server and localStorage on mount
   useEffect(() => {
     try {
+      const savedAuto = localStorage.getItem(STORAGE_KEY_AUTO_ADVANCE);
+      if (savedAuto !== null) setAutoAdvance(savedAuto === "true");
+
       const savedTitle = localStorage.getItem(STORAGE_KEY_TITLE);
       if (savedTitle) setTitle(savedTitle);
 
@@ -515,6 +538,9 @@ function HostDashboard({ session, supabase }: { session: Session; supabase: Supa
     setRoom(null);
     setActiveQuestion(null);
     setRoundResults(null);
+    setStopModalOpen(false);
+    setAutoCountdown(null);
+    setAutoPaused(false);
   };
 
   const handleCreateRoom = async (e: React.FormEvent) => {
@@ -571,6 +597,8 @@ function HostDashboard({ session, supabase }: { session: Session; supabase: Supa
 
   const handleNextQuestion = () => {
     if (!socket) return;
+    setAutoCountdown(null);
+    setAutoPaused(false);
     socket.emit("next-question");
   };
 
@@ -578,6 +606,45 @@ function HostDashboard({ session, supabase }: { session: Session; supabase: Supa
     if (!socket) return;
     socket.emit("close-question");
   };
+
+  const handleCancelOngoingQuiz = () => {
+    if (socket) {
+      socket.emit("cancel-quiz");
+    }
+    setStopModalOpen(false);
+    handleExitToEditor();
+  };
+
+  const handleFinishQuizEarly = () => {
+    if (socket) {
+      socket.emit("finish-quiz");
+    }
+    setStopModalOpen(false);
+  };
+
+  useEffect(() => {
+    if (gameState !== "results" || !roundResults || !autoAdvance || autoPaused) {
+      setAutoCountdown(null);
+      return;
+    }
+
+    setAutoCountdown(3);
+    const timer = setInterval(() => {
+      setAutoCountdown((prev) => {
+        if (prev === null) return null;
+        if (prev <= 1) {
+          clearInterval(timer);
+          if (socket) {
+            socket.emit("next-question");
+          }
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [gameState, roundResults, autoAdvance, autoPaused, socket]);
 
   const handleCopyPin = () => {
     if (!room?.pin) return;
@@ -816,6 +883,27 @@ function HostDashboard({ session, supabase }: { session: Session; supabase: Supa
                   </button>
                 </div>
               </div>
+            </div>
+
+            {/* Auto-Advance Setting Bar */}
+            <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80 flex items-center justify-between gap-3">
+              <div>
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
+                  Auto-Advance Between Questions
+                </span>
+                <span className="text-xs text-slate-500">
+                  Automatically move to the next question with a 3-second countdown break after round results
+                </span>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={autoAdvance}
+                  onChange={(e) => toggleAutoAdvance(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-500"></div>
+              </label>
             </div>
           </div>
 
@@ -1262,7 +1350,7 @@ function HostDashboard({ session, supabase }: { session: Session; supabase: Supa
             <button
               onClick={() => {
                 if (confirm("Cancel this room and return to editor?")) {
-                  handleExitToEditor();
+                  handleCancelOngoingQuiz();
                 }
               }}
               className="px-6 py-3.5 rounded-2xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold text-sm transition"
@@ -1332,12 +1420,25 @@ function HostDashboard({ session, supabase }: { session: Session; supabase: Supa
               / {players.length}
             </div>
 
-            <button
-              onClick={handleCloseQuestion}
-              className="bg-slate-800 hover:bg-slate-900 text-white font-semibold py-2.5 px-5 rounded-xl text-xs sm:text-sm transition"
-            >
-              End Question Early
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setStopModalOpen(true)}
+                className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-semibold py-2.5 px-4 rounded-xl text-xs sm:text-sm transition flex items-center gap-1.5"
+                title="Stop or cancel this live quiz"
+              >
+                <StopCircle className="w-4 h-4 text-rose-500" />
+                <span>Stop Quiz</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleCloseQuestion}
+                className="bg-slate-800 hover:bg-slate-900 text-white font-semibold py-2.5 px-5 rounded-xl text-xs sm:text-sm transition"
+              >
+                End Question Early
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -1345,18 +1446,114 @@ function HostDashboard({ session, supabase }: { session: Session; supabase: Supa
       {/* ----------------- RESULTS VIEW: ROUND RESULTS & LEADERBOARD ----------------- */}
       {gameState === "results" && roundResults && (
         <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-elevated border border-surface-border space-y-6 animate-fade-in">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-surface-border">
+          {/* Auto-advance Countdown Banner */}
+          {autoAdvance && autoCountdown !== null && !autoPaused && (
+            <div className="bg-brand-50 border border-brand-200/80 rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-3 text-xs text-brand-900 font-medium animate-fade-in">
+              <div className="flex items-center gap-2.5">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-brand-600"></span>
+                </span>
+                <span>
+                  Auto-advancing to {roundResults.hasNext ? "next question" : "final podium"} in{" "}
+                  <strong className="text-brand-700 font-extrabold text-sm">{autoCountdown}s</strong>...
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setAutoPaused(true)}
+                  className="px-3 py-1.5 bg-white hover:bg-slate-100 border border-brand-200 rounded-xl text-brand-700 font-bold transition flex items-center gap-1.5 shadow-xs"
+                >
+                  <Pause className="w-3.5 h-3.5" />
+                  <span>Pause Break</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleNextQuestion}
+                  className="px-3 py-1.5 bg-brand-500 hover:bg-brand-600 text-white rounded-xl font-bold transition flex items-center gap-1 shadow-xs"
+                >
+                  <span>Skip Countdown</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-surface-border">
             <h2 className="font-display font-extrabold text-xl sm:text-2xl text-slate-900 flex items-center gap-2">
-              <CheckCircle2 className="w-7 h-7 text-emerald-600" />
+              <CheckCircle2 className="w-7 h-7 text-emerald-600 flex-shrink-0" />
               <span>Correct Solution: {roundResults.correctAnswers?.join(", ")}</span>
             </h2>
-            <button
-              onClick={handleNextQuestion}
-              className="tactile-press bg-brand-500 hover:bg-brand-600 text-white font-display font-bold py-3 px-8 rounded-xl flex items-center gap-2 transition shadow-tactile-brand self-start sm:self-auto text-sm"
-            >
-              <span>{roundResults.hasNext ? "Next Question" : "See Final Champion Podium"}</span>
-              <ArrowRight className="w-5 h-5" />
-            </button>
+
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <button
+                type="button"
+                onClick={() => setStopModalOpen(true)}
+                className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-semibold py-2.5 px-3.5 rounded-xl text-xs sm:text-sm transition flex items-center gap-1.5"
+                title="Stop or cancel this live quiz"
+              >
+                <StopCircle className="w-4 h-4 text-rose-500" />
+                <span>Stop Quiz</span>
+              </button>
+
+              {/* Auto-Advance toggle & pause control */}
+              <div className="flex items-center gap-2 bg-slate-100 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 border border-slate-200">
+                <span className="text-slate-500">Auto-advance:</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = !autoAdvance;
+                    toggleAutoAdvance(next);
+                    if (!next) {
+                      setAutoCountdown(null);
+                    }
+                  }}
+                  className={`px-2 py-0.5 rounded-md font-bold text-xs transition ${
+                    autoAdvance ? "bg-brand-500 text-white" : "bg-slate-300 text-slate-700"
+                  }`}
+                >
+                  {autoAdvance ? "ON" : "OFF"}
+                </button>
+                {autoAdvance && autoCountdown !== null && !autoPaused && (
+                  <button
+                    type="button"
+                    onClick={() => setAutoPaused(true)}
+                    className="ml-1 text-amber-600 hover:text-amber-700 font-bold flex items-center gap-1 text-xs"
+                    title="Pause auto-advance timer"
+                  >
+                    <Pause className="w-3.5 h-3.5" />
+                    <span>Pause ({autoCountdown}s)</span>
+                  </button>
+                )}
+                {autoAdvance && autoPaused && (
+                  <button
+                    type="button"
+                    onClick={() => setAutoPaused(false)}
+                    className="ml-1 text-emerald-600 hover:text-emerald-700 font-bold flex items-center gap-1 text-xs"
+                    title="Resume auto-advance timer"
+                  >
+                    <Play className="w-3.5 h-3.5 fill-emerald-600" />
+                    <span>Resume</span>
+                  </button>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={handleNextQuestion}
+                className="tactile-press bg-brand-500 hover:bg-brand-600 text-white font-display font-bold py-2.5 px-6 rounded-xl flex items-center gap-2 transition shadow-tactile-brand text-sm"
+              >
+                <span>
+                  {autoAdvance && autoCountdown !== null && !autoPaused
+                    ? `Next (${autoCountdown}s)`
+                    : roundResults.hasNext
+                    ? "Next Question"
+                    : "See Final Champion Podium"}
+                </span>
+                <ArrowRight className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           {/* Option Distribution */}
@@ -1533,6 +1730,75 @@ function HostDashboard({ session, supabase }: { session: Session; supabase: Supa
               <RotateCcw className="w-4 h-4" />
               <span>Host Another Quiz / Edit Questions</span>
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Stop / Cancel Quiz Modal */}
+      {stopModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl border border-surface-border max-w-lg w-full p-6 sm:p-8 space-y-6 animate-scale-up">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-rose-100 border border-rose-200 flex items-center justify-center flex-shrink-0 text-rose-600">
+                <StopCircle className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-display font-extrabold text-xl text-slate-900">
+                  Stop Ongoing Quiz?
+                </h3>
+                <p className="text-sm text-slate-500 mt-1">
+                  Choose how you would like to end this session:
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {/* Option 1: Finish Early & Show Podium */}
+              <button
+                type="button"
+                onClick={handleFinishQuizEarly}
+                className="w-full text-left p-4 rounded-2xl border border-slate-200 hover:border-brand-500 hover:bg-brand-50/50 transition flex items-center justify-between group"
+              >
+                <div className="space-y-1">
+                  <div className="font-display font-bold text-slate-900 group-hover:text-brand-600 flex items-center gap-2">
+                    <Trophy className="w-4 h-4 text-amber-500" />
+                    <span>End Quiz & Show Final Standings</span>
+                  </div>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    Stops further questions, locks current scores, and displays the podium champion screen to all participants.
+                  </p>
+                </div>
+                <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-brand-600 flex-shrink-0 ml-3" />
+              </button>
+
+              {/* Option 2: Cancel Quiz Entirely */}
+              <button
+                type="button"
+                onClick={handleCancelOngoingQuiz}
+                className="w-full text-left p-4 rounded-2xl border border-rose-100 hover:border-rose-400 hover:bg-rose-50/50 transition flex items-center justify-between group"
+              >
+                <div className="space-y-1">
+                  <div className="font-display font-bold text-rose-600 flex items-center gap-2">
+                    <XCircle className="w-4 h-4 text-rose-500" />
+                    <span>Cancel Quiz & Return to Editor</span>
+                  </div>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    Terminates the room immediately. Participants are notified that the session ended, and you return to edit questions.
+                  </p>
+                </div>
+                <ArrowRight className="w-5 h-5 text-rose-400 group-hover:text-rose-600 flex-shrink-0 ml-3" />
+              </button>
+            </div>
+
+            <div className="pt-2 border-t border-slate-100 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setStopModalOpen(false)}
+                className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100 font-semibold text-sm transition"
+              >
+                Resume Quiz
+              </button>
+            </div>
           </div>
         </div>
       )}

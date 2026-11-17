@@ -148,6 +148,8 @@ export class QuizRoomCore {
       events.push({ audience: "host", event: "question-results", data: this.state.lastRoundResults });
     } else if (this.state.questionState === "finished") {
       events.push({ audience: "host", event: "quiz-finished", data: { leaderboard: this.state.finalLeaderboard || players } });
+    } else if (this.state.questionState === "cancelled") {
+      events.push({ audience: "host", event: "quiz-cancelled", data: { message: "The host has ended this quiz session." } });
     }
     return events;
   }
@@ -183,6 +185,8 @@ export class QuizRoomCore {
       events.push({ audience: `player:${player.id}`, event: "question-results", data: this.state.lastRoundResults });
     } else if (this.state.questionState === "finished") {
       events.push({ audience: `player:${player.id}`, event: "quiz-finished", data: { leaderboard: this.state.finalLeaderboard || [] } });
+    } else if (this.state.questionState === "cancelled") {
+      events.push({ audience: `player:${player.id}`, event: "quiz-cancelled", data: { message: "The host has ended this quiz session." } });
     }
     return events;
   }
@@ -307,6 +311,15 @@ export class QuizRoomCore {
   finishQuiz(userId) {
     this.requireHost(userId);
     return this.finish();
+  }
+
+  cancelQuiz(userId) {
+    this.requireHost(userId);
+    if (this.state.status === "cancelled") return [];
+    this.state.status = "cancelled";
+    this.state.questionState = "cancelled";
+    this.state.deadline = null;
+    return [{ audience: "room", event: "quiz-cancelled", data: { message: "The host has ended this quiz session." } }];
   }
 
   finish() {

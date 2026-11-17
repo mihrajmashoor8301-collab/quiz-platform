@@ -189,4 +189,39 @@ describe("Cloudflare quiz room core", () => {
     expect(last.some((event) => event.audience === "host" && event.event === "answer-stats" && event.data.answered === 2)).toBe(true);
     expect(last.find((event) => event.event === "question-results").data.leaderboard).toHaveLength(2);
   });
+
+  it("allows host to cancel an ongoing quiz and notifies players", () => {
+    const core = new QuizRoomCore(createRoomState(room, questions), () => 1000);
+    core.addPlayer({ id: "player-1", nickname: "Ada", sessionHash: "a" });
+    core.startQuiz(room.hostId);
+    expect(core.state.questionState).toBe("question");
+
+    // Host cancels quiz
+    const cancelEvents = core.cancelQuiz(room.hostId);
+    expect(cancelEvents).toEqual([
+      { audience: "room", event: "quiz-cancelled", data: { message: "The host has ended this quiz session." } },
+    ]);
+    expect(core.state.status).toBe("cancelled");
+    expect(core.state.questionState).toBe("cancelled");
+    expect(core.state.deadline).toBeNull();
+
+    // Re-joining player receives quiz-cancelled event
+    const joinEvents = core.joinPlayer("player-1");
+    expect(joinEvents.some((e) => e.event === "quiz-cancelled")).toBe(true);
+  });
+
+  it("allows host to finish an ongoing quiz early and calculates final standings", () => {
+    const core = new QuizRoomCore(createRoomState(room, questions), () => 1000);
+    core.addPlayer({ id: "player-1", nickname: "Ada", sessionHash: "a" });
+    core.startQuiz(room.hostId);
+    core.submitAnswer("player-1", { questionId: 1, answer: "Water" });
+
+    // Host ends quiz early during question
+    const finishEvents = core.finishQuiz(room.hostId);
+    expect(core.state.status).toBe("finished");
+    expect(core.state.questionState).toBe("finished");
+    expect(finishEvents.some((e) => e.event === "quiz-finished")).toBe(true);
+    expect(core.state.finalLeaderboard).toHaveLength(1);
+    expect(core.state.finalLeaderboard[0].nickname).toBe("Ada");
+  });
 });

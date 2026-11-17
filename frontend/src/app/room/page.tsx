@@ -59,10 +59,11 @@ function RoomContent() {
   const [connected, setConnected] = useState(false);
   const [roomTitle, setRoomTitle] = useState("Live Arena");
 
-  // Player Game States: "lobby" | "question" | "submitted" | "results" | "finished"
+  // Player Game States: "lobby" | "question" | "submitted" | "results" | "finished" | "cancelled"
   const [playerState, setPlayerState] = useState<
-    "lobby" | "question" | "submitted" | "results" | "finished"
+    "lobby" | "question" | "submitted" | "results" | "finished" | "cancelled"
   >("lobby");
+  const [cancelMessage, setCancelMessage] = useState("");
   const [currentQuestion, setCurrentQuestion] = useState<any>(null);
   const [timeRemaining, setTimeRemaining] = useState(30);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -207,6 +208,11 @@ function RoomContent() {
           }
         }
         setPlayerState("finished");
+      });
+
+      client.on("quiz-cancelled", (data: { message?: string }) => {
+        setCancelMessage(data?.message || "The host has ended this quiz session.");
+        setPlayerState("cancelled");
       });
 
       setSocket(client);
@@ -557,6 +563,33 @@ function RoomContent() {
               className="inline-flex items-center gap-2 bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white font-display font-bold py-3.5 px-8 rounded-2xl shadow-tactile-brand transition-all text-sm"
             >
               <span>Play Another Arena</span>
+              <ArrowRight className="w-4 h-4" />
+            </a>
+          </div>
+        </div>
+      )}
+
+      {/* State: Cancelled */}
+      {playerState === "cancelled" && (
+        <div className="bg-white rounded-3xl shadow-elevated border border-surface-border p-8 sm:p-12 text-center space-y-6 relative overflow-hidden animate-fade-in">
+          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-rose-500 to-amber-500" />
+          <div className="w-16 h-16 mx-auto rounded-3xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600 shadow-inner">
+            <XCircle className="w-9 h-9" />
+          </div>
+          <div>
+            <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-slate-900 tracking-tight">
+              Quiz Ended by Host
+            </h1>
+            <p className="text-slate-500 mt-2 text-sm sm:text-base">
+              {cancelMessage || "The host has ended this live arena session."}
+            </p>
+          </div>
+          <div className="pt-2">
+            <a
+              href="/"
+              className="inline-flex items-center gap-2 bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white font-display font-bold py-3.5 px-8 rounded-2xl shadow-tactile-brand transition-all text-sm"
+            >
+              <span>Back to Home</span>
               <ArrowRight className="w-4 h-4" />
             </a>
           </div>

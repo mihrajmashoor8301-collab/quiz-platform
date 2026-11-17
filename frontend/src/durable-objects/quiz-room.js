@@ -204,11 +204,12 @@ export class QuizRoom extends DurableObject {
         let events = [];
         if (packet.event === "submit-answer" && attachment.role === "player") {
           events = core.submitAnswer(attachment.playerId, packet.data || {});
-        } else if (["start-quiz", "close-question", "next-question", "finish-quiz"].includes(packet.event) && attachment.role === "host") {
+        } else if (["start-quiz", "close-question", "next-question", "finish-quiz", "cancel-quiz"].includes(packet.event) && attachment.role === "host") {
           if (packet.event === "start-quiz") events = core.startQuiz(attachment.userId);
           if (packet.event === "close-question") events = core.closeEarly(attachment.userId);
           if (packet.event === "next-question") events = core.nextQuestion(attachment.userId);
           if (packet.event === "finish-quiz") events = core.finishQuiz(attachment.userId);
+          if (packet.event === "cancel-quiz") events = core.cancelQuiz(attachment.userId);
         } else {
           throw new Error("This action is not allowed for this session.");
         }
@@ -216,6 +217,7 @@ export class QuizRoom extends DurableObject {
         await this.saveState(state);
         await this.syncAlarm(state);
         if (packet.event === "start-quiz") await this.setRoomStatus("running", true, state.pin);
+        if (packet.event === "cancel-quiz") await this.setRoomStatus("cancelled", false, state.pin);
         if (state.questionState === "finished") await this.persistFinal(state);
       } catch (error) {
         this.send(socket, "error", error.message || "The action could not be completed.");
