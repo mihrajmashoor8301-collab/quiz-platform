@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>QuizPlatform - Question Bank &amp; JSON Vault</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-container-lowest": "#ffffff",
+            "on-background": "#0b1c30",
+            "tertiary-container": "#007083",
+            "surface-tint": "#5038f8",
+            "primary": "#3e1ae8",
+            "secondary-fixed-dim": "#c4c0ff",
+            "surface-bright": "#f8f9ff",
+            "surface-container-low": "#eff4ff",
+            "inverse-surface": "#213145",
+            "on-primary": "#ffffff",
+            "inverse-primary": "#c5c0ff",
+            "on-surface-variant": "#474556",
+            "surface-container-high": "#dce9ff",
+            "background": "#f8f9ff",
+            "on-error-container": "#93000a",
+            "tertiary-fixed": "#acedff",
+            "surface-container": "#e5eeff",
+            "surface-variant": "#d3e4fe",
+            "surface-dim": "#cbdbf5",
+            "primary-fixed-dim": "#c5c0ff",
+            "primary-container": "#5842ff",
+            "on-tertiary-fixed": "#001f26",
+            "secondary": "#3f22e8",
+            "on-secondary-fixed-variant": "#3407df",
+            "on-secondary-fixed": "#120068",
+            "outline-variant": "#c8c4d9",
+            "error-container": "#ffdad6",
+            "on-surface": "#0b1c30",
+            "surface-container-highest": "#d3e4fe",
+            "error": "#ba1a1a",
+            "primary-fixed": "#e3dfff",
+            "tertiary": "#005665",
+            "on-primary-container": "#e5e1ff",
+            "inverse-on-surface": "#eaf1ff",
+            "on-primary-fixed": "#130067",
+            "on-tertiary-fixed-variant": "#004e5c",
+            "secondary-fixed": "#e3dfff",
+            "on-secondary": "#ffffff",
+            "surface": "#f8f9ff",
+            "tertiary-fixed-dim": "#4cd7f6",
+            "on-error": "#ffffff",
+            "outline": "#777588",
+            "secondary-container": "#5947ff",
+            "on-primary-fixed-variant": "#3600e1",
+            "on-tertiary": "#ffffff",
+            "on-tertiary-container": "#b3eeff",
+            "on-secondary-container": "#e9e5ff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-sm": "0.5rem",
+            "space-xs": "0.25rem",
+            "margin-mobile": "1rem",
+            "space-lg": "1.5rem",
+            "margin": "2rem",
+            "gutter-mobile": "1rem",
+            "space-md": "1rem",
+            "space-xl": "2.5rem",
+            "gutter": "1.5rem"
+          },
+          "fontFamily": {
+            "body-md": ["Inter"],
+            "headline-sm": ["Plus Jakarta Sans"],
+            "display-xl": ["Plus Jakarta Sans"],
+            "label-sm": ["Plus Jakarta Sans"],
+            "body-sm": ["Inter"],
+            "label-lg": ["Plus Jakarta Sans"],
+            "headline-lg-mobile": ["Plus Jakarta Sans"],
+            "headline-lg": ["Plus Jakarta Sans"],
+            "display-xl-mobile": ["Plus Jakarta Sans"],
+            "headline-md": ["Plus Jakarta Sans"],
+            "body-lg": ["Inter"],
+            "code-num": ["JetBrains Mono", "Inter"],
+            "label-md": ["Plus Jakarta Sans"]
+          },
+          "fontSize": {
+            "body-md": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "400" }],
+            "headline-sm": ["1.25rem", { "lineHeight": "1.75rem", "fontWeight": "600" }],
+            "display-xl": ["3.5rem", { "lineHeight": "4rem", "letterSpacing": "-0.03em", "fontWeight": "800" }],
+            "label-sm": ["0.75rem", { "lineHeight": "1rem", "letterSpacing": "0.04em", "fontWeight": "700" }],
+            "body-sm": ["0.875rem", { "lineHeight": "1.25rem", "fontWeight": "400" }],
+            "label-lg": ["1rem", { "lineHeight": "1.5rem", "letterSpacing": "0.01em", "fontWeight": "600" }],
+            "headline-lg-mobile": ["1.75rem", { "lineHeight": "2.25rem", "letterSpacing": "-0.015em", "fontWeight": "700" }],
+            "headline-lg": ["2.25rem", { "lineHeight": "2.75rem", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "display-xl-mobile": ["2.25rem", { "lineHeight": "2.75rem", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+            "headline-md": ["1.5rem", { "lineHeight": "2rem", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "body-lg": ["1.125rem", { "lineHeight": "1.75rem", "fontWeight": "400" }],
+            "code-num": ["1.125rem", { "lineHeight": "1.5rem", "letterSpacing": "0.05em", "fontWeight": "700" }],
+            "label-md": ["0.875rem", { "lineHeight": "1.25rem", "letterSpacing": "0.005em", "fontWeight": "600" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      line-height: 1;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .tactile-btn {
+      box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.2), 0 2px 4px 0 rgba(15, 23, 42, 0.08);
+      transition: all 0.12s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .tactile-btn:active {
+      transform: translateY(1px);
+      box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+    }
+    .tactile-chip {
+      box-shadow: 0 2px 0 0 var(--bevel-color);
+      transition: all 0.1s ease;
+    }
+    .tactile-chip:active {
+      transform: translateY(2px);
+      box-shadow: 0 0 0 0 transparent;
+    }
+    /* Custom scrollbar for dense code & panels */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #c8c4d9;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #777588;
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background antialiased min-h-screen flex flex-col font-body-md">
+<!-- ==================== TOP NAVIGATION BAR (Shared Component: TopNavBar) ==================== -->
+<header class="bg-surface-container-lowest/80 backdrop-blur-md docked full-width top-0 z-50 sticky border-b border-outline-variant/40 shadow-sm">
+<div class="flex justify-between items-center w-full px-space-lg md:px-margin max-w-7xl mx-auto h-16">
+<!-- Left cluster: Brand & Search bar on left -->
+<div class="flex items-center gap-space-lg">
+<a class="flex items-center gap-2 group" href="#">
+<div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center text-on-primary shadow-sm shadow-primary/30 group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-xl" data-icon="bolt">bolt</span>
+</div>
+<span class="font-headline-md text-headline-md font-bold text-primary tracking-tight">QuizPlatform</span>
+</a>
+<!-- Global Search Bar (on_left) -->
+<div class="relative hidden lg:block w-72">
+<span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-outline">
+<span class="material-symbols-outlined text-lg" data-icon="search">search</span>
+</span>
+<input class="w-full pl-9 pr-8 py-1.5 bg-surface-container-low border border-outline-variant/60 rounded-lg font-body-sm text-body-sm text-on-surface focus:outline-none focus:border-primary-container focus:ring-2 focus:ring-primary-container/20 transition-all placeholder:text-outline/70" placeholder="Search question bank, tags... (⌘K)" type="text"/>
+<span class="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none">
+<kbd class="px-1.5 py-0.5 text-[10px] font-semibold text-outline bg-surface-container-lowest border border-outline-variant rounded">⌘K</kbd>
+</span>
+</div>
+</div>
+<!-- Navigation links (Center-aligned) -->
+<nav class="hidden md:flex items-center gap-space-lg">
+<a class="text-on-surface-variant font-label-md text-label-md pb-1 transition-colors hover:text-primary active:scale-95 transition-transform duration-100 ease-out" href="#">Dashboard</a>
+<!-- Question Bank: ACTIVE TAB -->
+<a class="text-primary font-label-md text-label-md border-b-2 border-primary pb-1 active:scale-95 transition-transform duration-100 ease-out flex items-center gap-1.5" href="#">
+<span>Question Bank</span>
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-pulse"></span>
+</a>
+<a class="text-on-surface-variant font-label-md text-label-md pb-1 transition-colors hover:text-primary active:scale-95 transition-transform duration-100 ease-out" href="#">Live Arenas</a>
+<a class="text-on-surface-variant font-label-md text-label-md pb-1 transition-colors hover:text-primary active:scale-95 transition-transform duration-100 ease-out" href="#">Analytics</a>
+<a class="text-on-surface-variant font-label-md text-label-md pb-1 transition-colors hover:text-primary active:scale-95 transition-transform duration-100 ease-out" href="#">Templates</a>
+</nav>
+<!-- Trailing actions: Create Quiz, Host Room, Trailing Icons, Latency & Profile Avatar -->
+<div class="flex items-center gap-3">
+<!-- Edge Telemetry Pill -->
+<div class="hidden xl:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-low border border-outline-variant/40">
+<span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+<span class="font-label-sm text-label-sm text-outline font-code-num text-code-num text-xs">18ms Global Edge</span>
+</div>
+<!-- Trailing Secondary Action -->
+<button class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-surface-container-lowest border border-outline-variant/80 hover:border-primary-container text-on-surface rounded-lg font-label-md text-label-md tactile-btn transition-colors">
+<span class="material-symbols-outlined text-lg text-primary" data-icon="cast">cast</span>
+<span>Host Room</span>
+</button>
+<!-- Trailing Primary Action -->
+<button class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-primary-container hover:bg-secondary-container text-on-primary rounded-lg font-label-md text-label-md tactile-btn transition-all">
+<span class="material-symbols-outlined text-lg" data-icon="add">add</span>
+<span>Create Quiz</span>
+</button>
+<!-- Trailing Icon Actions -->
+<div class="flex items-center gap-1 border-l border-outline-variant/40 pl-2">
+<button class="w-8 h-8 flex items-center justify-center text-outline hover:text-primary hover:bg-surface-container-low rounded-lg transition-colors relative" title="Notifications">
+<span class="material-symbols-outlined text-xl" data-icon="notifications">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full"></span>
+</button>
+</div>
+<!-- Profile Image Avatar -->
+<div class="flex items-center gap-2 pl-1 group cursor-pointer">
+<img alt="Host profile portrait avatar" class="w-8 h-8 rounded-full border-2 border-primary/20 object-cover ring-2 ring-transparent group-hover:ring-primary/30 transition-all" data-alt="Close-up professional headshot of Dr. Alex Chen, an Asian enterprise quiz administrator with sleek glasses and sharp navy attire, against a soft-lit modern studio setting with warm directional light and minimal electric indigo background glow." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBgMqjNVoPKdUN3EqnouuS7Eb5SIZA7VOFR42nFfyYR8bEvE-CXO5jf9EvOQ6MBemQVcfkWOWV8VMWDbBSDlxiUjPGS5j7Nlf4YL3EONkHhuHRDtcFjG2lrIlOCu7IKyXDkuNAzhQsI3RpQzwe6F7SAkSH-JDRJdBTcqS_O54xLvbpr4MD9EByzGcE_sONEnrbvgVjoOijurfmRNerC5LTTRPo5C4ZgF77BNDftGhoX"/>
+<div class="hidden 2xl:flex flex-col text-left">
+<span class="font-label-sm text-label-sm leading-tight text-on-surface">Dr. Alex Chen</span>
+<span class="text-[10px] text-outline leading-tight">Staff Architect</span>
+</div>
+</div>
+</div>
+</div>
+</header>
+<!-- ==================== SUB-HEADER / WORKSPACE BANNER ==================== -->
+<section class="bg-surface-container-lowest border-b border-outline-variant/40 px-space-lg md:px-margin py-4">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+<!-- Breadcrumb + Title + Badges -->
+<div class="space-y-1">
+<div class="flex items-center gap-2 text-xs font-label-sm text-outline">
+<a class="hover:text-primary transition-colors" href="#">Workspace</a>
+<span class="material-symbols-outlined text-xs" data-icon="chevron_right">chevron_right</span>
+<a class="hover:text-primary transition-colors" href="#">Acme Enterprise</a>
+<span class="material-symbols-outlined text-xs" data-icon="chevron_right">chevron_right</span>
+<span class="text-primary font-semibold">Question Bank</span>
+</div>
+<div class="flex flex-wrap items-center gap-3">
+<h1 class="font-headline-md text-headline-md text-on-surface font-bold tracking-tight">Question Bank &amp; JSON Vault</h1>
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+            142 Questions Active
+          </span>
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-container-low border border-outline-variant/50 text-outline font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            Supabase Synced
+          </span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant max-w-2xl">
+          Centralized repository of validated questions, multi-bank taxonomies, and portable JSON schema imports.
+        </p>
+</div>
+<!-- Action Group -->
+<div class="flex items-center flex-wrap gap-2.5">
+<button class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-surface-container-lowest border border-outline-variant text-on-surface hover:border-primary-container rounded-lg font-label-md text-label-md tactile-btn transition-colors">
+<span class="material-symbols-outlined text-base" data-icon="create_new_folder">create_new_folder</span>
+<span>+ New Bank Folder</span>
+</button>
+<button class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-surface-container-lowest border border-outline-variant text-on-surface hover:border-primary-container rounded-lg font-label-md text-label-md tactile-btn transition-colors">
+<span class="material-symbols-outlined text-base text-primary" data-icon="code">code</span>
+<span>Import JSON</span>
+</button>
+<button class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-surface-container-lowest border border-outline-variant text-on-surface hover:border-primary-container rounded-lg font-label-md text-label-md tactile-btn transition-colors">
+<span class="material-symbols-outlined text-base" data-icon="download">download</span>
+<span>Export All JSON</span>
+</button>
+<button class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-primary-container hover:bg-secondary-container text-on-primary rounded-lg font-label-md text-label-md font-semibold tactile-btn transition-all">
+<span class="material-symbols-outlined text-base" data-icon="add_circle">add_circle</span>
+<span>+ Add New Question</span>
+</button>
+</div>
+</div>
+</section>
+<!-- ==================== MAIN 3-PANE WORKSPACE ==================== -->
+<main class="flex-1 max-w-7xl w-full mx-auto px-space-lg md:px-margin py-6">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+<!-- ==================== LEFT PANE: BANKS & TAXONOMY (Col 3) ==================== -->
+<aside class="lg:col-span-3 space-y-5">
+<!-- Folder Hierarchy Card -->
+<div class="bg-surface-container-lowest border border-outline-variant/60 rounded-xl p-4 shadow-sm">
+<div class="flex items-center justify-between pb-3 mb-2 border-b border-outline-variant/30">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="folder_special">folder_special</span>
+<h2 class="font-headline-sm text-sm font-bold text-on-surface uppercase tracking-wider">Bank Folders</h2>
+</div>
+<button class="p-1 hover:bg-surface-container-low rounded-lg text-outline hover:text-primary transition-colors" title="Create new bank folder">
+<span class="material-symbols-outlined text-lg" data-icon="create_new_folder">create_new_folder</span>
+</button>
+</div>
+<!-- Folder list -->
+<ul class="space-y-1">
+<!-- All Questions (Active) -->
+<li>
+<a class="flex items-center justify-between px-3 py-2 rounded-lg bg-primary-container/10 text-primary font-label-md text-label-md border-l-4 border-primary transition-all" href="#">
+<div class="flex items-center gap-2.5 truncate">
+<span class="material-symbols-outlined text-lg" data-icon="folder_open">folder_open</span>
+<span class="truncate font-semibold">All Questions</span>
+</div>
+<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-primary-container text-on-primary">142</span>
+</a>
+</li>
+<!-- Web Engineering & JS -->
+<li>
+<a class="flex items-center justify-between px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface font-label-md text-label-md transition-colors group" href="#">
+<div class="flex items-center gap-2.5 truncate">
+<span class="material-symbols-outlined text-lg text-outline group-hover:text-primary" data-icon="folder">folder</span>
+<span class="truncate">Web Engineering &amp; JS</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="hidden group-hover:inline-block px-1.5 py-0.5 rounded text-[10px] bg-amber-100 text-amber-800">2h ago</span>
+<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-surface-container text-on-surface-variant">42</span>
+</div>
+</a>
+</li>
+<!-- General Science & Tech -->
+<li>
+<a class="flex items-center justify-between px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface font-label-md text-label-md transition-colors group" href="#">
+<div class="flex items-center gap-2.5 truncate">
+<span class="material-symbols-outlined text-lg text-outline group-hover:text-primary" data-icon="folder">folder</span>
+<span class="truncate">General Science &amp; Tech</span>
+</div>
+<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-surface-container text-on-surface-variant">35</span>
+</a>
+</li>
+<!-- Company Culture & Values -->
+<li>
+<a class="flex items-center justify-between px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface font-label-md text-label-md transition-colors group" href="#">
+<div class="flex items-center gap-2.5 truncate">
+<span class="material-symbols-outlined text-lg text-outline group-hover:text-primary" data-icon="folder">folder</span>
+<span class="truncate">Company Culture &amp; Values</span>
+</div>
+<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-surface-container text-on-surface-variant">28</span>
+</a>
+</li>
+<!-- Speed Trivia & Pop Culture -->
+<li>
+<a class="flex items-center justify-between px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface font-label-md text-label-md transition-colors group" href="#">
+<div class="flex items-center gap-2.5 truncate">
+<span class="material-symbols-outlined text-lg text-outline group-hover:text-primary" data-icon="folder">folder</span>
+<span class="truncate">Speed Trivia &amp; Pop Culture</span>
+</div>
+<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-surface-container text-on-surface-variant">37</span>
+</a>
+</li>
+<!-- Cybersecurity & Infosec (Draft) -->
+<li>
+<a class="flex items-center justify-between px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface font-label-md text-label-md transition-colors group" href="#">
+<div class="flex items-center gap-2.5 truncate">
+<span class="material-symbols-outlined text-lg text-outline group-hover:text-primary" data-icon="drafts">drafts</span>
+<span class="truncate">Cybersecurity &amp; Infosec</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="px-1.5 py-0.2 rounded text-[10px] bg-surface-container-highest text-outline font-medium">Draft</span>
+<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-surface-container text-on-surface-variant">12</span>
+</div>
+</a>
+</li>
+</ul>
+<!-- Folder Quick Actions Bar -->
+<div class="mt-4 pt-3 border-t border-outline-variant/30 flex items-center justify-around text-outline">
+<button class="p-1.5 hover:text-primary hover:bg-surface-container-low rounded-lg transition-colors" title="Rename active folder">
+<span class="material-symbols-outlined text-lg" data-icon="edit">edit</span>
+</button>
+<button class="p-1.5 hover:text-primary hover:bg-surface-container-low rounded-lg transition-colors" title="Duplicate folder schema">
+<span class="material-symbols-outlined text-lg" data-icon="content_copy">content_copy</span>
+</button>
+<button class="p-1.5 hover:text-primary hover:bg-surface-container-low rounded-lg transition-colors" title="Export this folder only">
+<span class="material-symbols-outlined text-lg" data-icon="file_download">file_download</span>
+</button>
+<button class="p-1.5 hover:text-error hover:bg-error-container/40 rounded-lg transition-colors" title="Delete folder">
+<span class="material-symbols-outlined text-lg" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+<!-- Tag Cloud / Taxonomies -->
+<div class="bg-surface-container-lowest border border-outline-variant/60 rounded-xl p-4 shadow-sm space-y-3">
+<div class="flex items-center justify-between">
+<h2 class="font-headline-sm text-sm font-bold text-on-surface uppercase tracking-wider">Filter by Tags</h2>
+<button class="text-xs text-primary hover:underline font-label-sm">Clear</button>
+</div>
+<div class="flex flex-wrap gap-1.5">
+<span class="px-2.5 py-1 rounded-md text-xs font-code-num bg-primary-fixed text-primary font-semibold cursor-pointer border border-primary/20 hover:bg-primary-container hover:text-on-primary transition-all">#javascript</span>
+<span class="px-2.5 py-1 rounded-md text-xs font-code-num bg-surface-container-low text-on-surface-variant cursor-pointer border border-outline-variant/40 hover:border-primary-container transition-all">#cloudflare</span>
+<span class="px-2.5 py-1 rounded-md text-xs font-code-num bg-surface-container-low text-on-surface-variant cursor-pointer border border-outline-variant/40 hover:border-primary-container transition-all">#networking</span>
+<span class="px-2.5 py-1 rounded-md text-xs font-code-num bg-surface-container-low text-on-surface-variant cursor-pointer border border-outline-variant/40 hover:border-primary-container transition-all">#algorithms</span>
+<span class="px-2.5 py-1 rounded-md text-xs font-code-num bg-surface-container-low text-on-surface-variant cursor-pointer border border-outline-variant/40 hover:border-primary-container transition-all">#security</span>
+<span class="px-2.5 py-1 rounded-md text-xs font-code-num bg-emerald-50 text-emerald-700 cursor-pointer border border-emerald-200 hover:bg-emerald-100 transition-all">#easy</span>
+<span class="px-2.5 py-1 rounded-md text-xs font-code-num bg-red-50 text-red-700 cursor-pointer border border-red-200 hover:bg-red-100 transition-all">#hard</span>
+<span class="px-2.5 py-1 rounded-md text-xs font-code-num bg-surface-container-low text-on-surface-variant cursor-pointer border border-outline-variant/40 hover:border-primary-container transition-all">#timed-15s</span>
+</div>
+</div>
+<!-- Storage Quota Widget -->
+<div class="bg-surface-container-lowest border border-outline-variant/60 rounded-xl p-4 shadow-sm space-y-3">
+<div class="flex items-center justify-between text-xs font-label-md">
+<span class="text-on-surface font-semibold">Storage Quota</span>
+<span class="text-primary font-bold">14.2%</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-primary-container h-full rounded-full transition-all duration-500" style="width: 14.2%"></div>
+</div>
+<div class="flex items-center justify-between text-xs text-outline font-body-sm">
+<span>142 / 1,000 Questions</span>
+<span class="font-semibold text-on-surface">Enterprise Plan</span>
+</div>
+</div>
+</aside>
+<!-- ==================== CENTER PANE: QUESTION REPOSITORY & WORKSPACE (Col 6) ==================== -->
+<section class="lg:col-span-6 space-y-4">
+<!-- Filter Toolbar & Search -->
+<div class="bg-surface-container-lowest border border-outline-variant/60 rounded-xl p-3.5 shadow-sm space-y-3">
+<div class="flex items-center gap-2">
+<div class="relative flex-1">
+<span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-outline">
+<span class="material-symbols-outlined text-lg" data-icon="search">search</span>
+</span>
+<input class="w-full pl-9 pr-4 py-2 bg-surface-container-low border border-outline-variant/60 rounded-lg font-body-sm text-body-sm text-on-surface focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-all" placeholder="Search questions, tags, or answer options..." type="text"/>
+</div>
+<!-- Type dropdown -->
+<div class="relative min-w-[140px]">
+<select class="w-full py-2 pl-3 pr-8 bg-surface-container-lowest border border-outline-variant/60 rounded-lg font-label-md text-label-md text-on-surface cursor-pointer focus:outline-none focus:border-primary-container">
+<option>Multiple Choice</option>
+<option>True / False</option>
+<option>Code Snippet</option>
+<option>Open Pulse</option>
+</select>
+</div>
+<!-- View toggle (Table vs Cards) -->
+<div class="flex items-center bg-surface-container-low p-1 rounded-lg border border-outline-variant/40">
+<button class="p-1 rounded bg-surface-container-lowest text-primary shadow-xs" title="Cards View">
+<span class="material-symbols-outlined text-lg" data-icon="view_agenda">view_agenda</span>
+</button>
+<button class="p-1 rounded text-outline hover:text-on-surface transition-colors" title="Table View">
+<span class="material-symbols-outlined text-lg" data-icon="table_rows">table_rows</span>
+</button>
+</div>
+</div>
+<!-- Difficulty pills & Sort order -->
+<div class="flex items-center justify-between flex-wrap gap-2 pt-1 border-t border-outline-variant/20">
+<div class="flex items-center gap-1.5">
+<span class="text-xs text-outline font-label-sm mr-1">Difficulty:</span>
+<button class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary-container text-on-primary">All</button>
+<button class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-surface-container-low text-on-surface-variant hover:bg-surface-container">Easy (48)</button>
+<button class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-surface-container-low text-on-surface-variant hover:bg-surface-container">Medium (64)</button>
+<button class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-surface-container-low text-on-surface-variant hover:bg-surface-container">Hard (30)</button>
+</div>
+<div class="flex items-center gap-1 text-xs text-outline font-label-sm">
+<span>Sort:</span>
+<span class="font-semibold text-on-surface flex items-center cursor-pointer hover:text-primary">
+                Last Modified
+                <span class="material-symbols-outlined text-sm" data-icon="expand_more">expand_more</span>
+</span>
+</div>
+</div>
+</div>
+<!-- Bulk Selection Action Bar -->
+<div class="bg-primary-fixed/60 border border-primary-container/30 rounded-xl px-4 py-2.5 flex items-center justify-between text-on-primary-fixed shadow-xs">
+<div class="flex items-center gap-2.5">
+<input checked="" class="w-4 h-4 rounded text-primary-container focus:ring-primary-container border-outline-variant cursor-pointer" type="checkbox"/>
+<span class="font-label-md text-label-md font-bold">2 questions selected</span>
+</div>
+<div class="flex items-center gap-1.5">
+<button class="px-2.5 py-1 bg-surface-container-lowest hover:bg-surface-container text-primary font-label-sm text-label-sm rounded-md shadow-xs border border-primary/20 transition-all flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="playlist_add">playlist_add</span>
+<span>Add to Quiz...</span>
+</button>
+<button class="px-2.5 py-1 bg-surface-container-lowest hover:bg-surface-container text-on-surface font-label-sm text-label-sm rounded-md shadow-xs border border-outline-variant/60 transition-all flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="drive_file_move">drive_file_move</span>
+<span>Move to Bank...</span>
+</button>
+<button class="px-2.5 py-1 bg-surface-container-lowest hover:bg-surface-container text-on-surface font-label-sm text-label-sm rounded-md shadow-xs border border-outline-variant/60 transition-all flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="file_download">file_download</span>
+<span>Export JSON</span>
+</button>
+<button class="p-1 hover:bg-error-container/60 text-error rounded-md transition-colors" title="Delete Selected">
+<span class="material-symbols-outlined text-base" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+<!-- Question Cards Stream -->
+<div class="space-y-3.5">
+<!-- ================= QUESTION CARD 1 (Selected) ================= -->
+<article class="bg-surface-container-lowest border-2 border-primary-container rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow relative">
+<div class="flex items-start gap-3">
+<input checked="" class="mt-1 w-4 h-4 rounded text-primary-container focus:ring-primary-container border-outline-variant cursor-pointer" type="checkbox"/>
+<div class="flex-1 space-y-3">
+<!-- Metadata header & row actions -->
+<div class="flex items-center justify-between flex-wrap gap-2">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-surface-container text-on-surface-variant font-label-sm">Web Engineering</span>
+<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-100 text-amber-900 border border-amber-300">Hard</span>
+<span class="inline-flex items-center gap-1 text-xs text-outline font-label-sm">
+<span class="material-symbols-outlined text-xs" data-icon="timer">timer</span> 30s
+                    </span>
+<span class="inline-flex items-center gap-1 text-xs text-outline font-label-sm">
+<span class="material-symbols-outlined text-xs" data-icon="stars">stars</span> 1,000 pts
+                    </span>
+</div>
+<!-- Quick actions on card -->
+<div class="flex items-center gap-1 text-outline">
+<button class="p-1 hover:text-primary hover:bg-surface-container-low rounded transition-colors" title="Edit Question">
+<span class="material-symbols-outlined text-base" data-icon="edit">edit</span>
+</button>
+<button class="p-1 hover:text-primary hover:bg-surface-container-low rounded transition-colors" title="Duplicate">
+<span class="material-symbols-outlined text-base" data-icon="content_copy">content_copy</span>
+</button>
+<button class="p-1 hover:text-primary hover:bg-surface-container-low rounded transition-colors" title="Inspect JSON">
+<span class="material-symbols-outlined text-base text-primary" data-icon="data_object">data_object</span>
+</button>
+<button class="p-1 hover:text-error hover:bg-error-container/40 rounded transition-colors" title="Delete">
+<span class="material-symbols-outlined text-base" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+<!-- Prompt Title -->
+<h3 class="font-headline-sm text-base text-on-surface font-semibold leading-snug">
+                  What is the primary execution model of Cloudflare Workers isolates?
+                </h3>
+<!-- 4 Semantic Multiple Choice Answer Pills -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1">
+<!-- Option A (Red / Coral Accent) -->
+<div class="flex items-center gap-2 p-2 rounded-lg bg-surface-container-low/70 border border-red-200 text-xs">
+<span class="w-5 h-5 rounded flex items-center justify-center font-bold bg-red-500 text-white text-[11px] shadow-xs">A</span>
+<span class="text-on-surface truncate">Full OS virtual machine containerization</span>
+</div>
+<!-- Option B (Blue / Cerulean Accent) -->
+<div class="flex items-center gap-2 p-2 rounded-lg bg-surface-container-low/70 border border-blue-200 text-xs">
+<span class="w-5 h-5 rounded flex items-center justify-center font-bold bg-blue-500 text-white text-[11px] shadow-xs">B</span>
+<span class="text-on-surface truncate">Pre-forked Node.js child processes</span>
+</div>
+<!-- Option C (Green / Emerald - Correct!) -->
+<div class="flex items-center justify-between gap-2 p-2 rounded-lg bg-emerald-50 border-2 border-emerald-500 text-xs shadow-xs">
+<div class="flex items-center gap-2 truncate">
+<span class="w-5 h-5 rounded flex items-center justify-center font-bold bg-emerald-600 text-white text-[11px] shadow-xs">C</span>
+<span class="text-emerald-950 font-semibold truncate">V8 Isolate engines running sandboxed scripts</span>
+</div>
+<span class="material-symbols-outlined text-emerald-600 text-base" data-icon="check_circle">check_circle</span>
+</div>
+<!-- Option D (Amber Accent) -->
+<div class="flex items-center gap-2 p-2 rounded-lg bg-surface-container-low/70 border border-amber-200 text-xs">
+<span class="w-5 h-5 rounded flex items-center justify-center font-bold bg-amber-500 text-white text-[11px] shadow-xs">D</span>
+<span class="text-on-surface truncate">Shared multi-tenant WebAssembly hypervisor</span>
+</div>
+</div>
+<!-- Footer Telemetry -->
+<div class="flex items-center justify-between pt-2 border-t border-outline-variant/30 text-xs text-outline font-body-sm">
+<div class="flex items-center gap-3">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm text-primary" data-icon="query_stats">query_stats</span>
+                      Used in 14 quizzes
+                    </span>
+<span>•</span>
+<span class="text-emerald-600 font-semibold">88% accuracy</span>
+</div>
+<span class="font-code-num text-[11px]">ID: q_cf_01</span>
+</div>
+</div>
+</div>
+</article>
+<!-- ================= QUESTION CARD 2 (Selected) ================= -->
+<article class="bg-surface-container-lowest border-2 border-primary-container rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow relative">
+<div class="flex items-start gap-3">
+<input checked="" class="mt-1 w-4 h-4 rounded text-primary-container focus:ring-primary-container border-outline-variant cursor-pointer" type="checkbox"/>
+<div class="flex-1 space-y-3">
+<div class="flex items-center justify-between flex-wrap gap-2">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-surface-container text-on-surface-variant font-label-sm">Web Engineering</span>
+<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-100 text-blue-900 border border-blue-300">Medium</span>
+<span class="inline-flex items-center gap-1 text-xs text-outline font-label-sm">
+<span class="material-symbols-outlined text-xs" data-icon="timer">timer</span> 20s
+                    </span>
+<span class="inline-flex items-center gap-1 text-xs text-outline font-label-sm">
+<span class="material-symbols-outlined text-xs" data-icon="stars">stars</span> 500 pts
+                    </span>
+</div>
+<div class="flex items-center gap-1 text-outline">
+<button class="p-1 hover:text-primary hover:bg-surface-container-low rounded transition-colors" title="Edit Question">
+<span class="material-symbols-outlined text-base" data-icon="edit">edit</span>
+</button>
+<button class="p-1 hover:text-primary hover:bg-surface-container-low rounded transition-colors" title="Duplicate">
+<span class="material-symbols-outlined text-base" data-icon="content_copy">content_copy</span>
+</button>
+<button class="p-1 hover:text-primary hover:bg-surface-container-low rounded transition-colors" title="Inspect JSON">
+<span class="material-symbols-outlined text-base text-primary" data-icon="data_object">data_object</span>
+</button>
+<button class="p-1 hover:text-error hover:bg-error-container/40 rounded transition-colors" title="Delete">
+<span class="material-symbols-outlined text-base" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+<h3 class="font-headline-sm text-base text-on-surface font-semibold leading-snug">
+                  Which HTTP status code represents "Content Too Large"?
+                </h3>
+<!-- Options Preview -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1">
+<!-- Option A (Correct) -->
+<div class="flex items-center justify-between gap-2 p-2 rounded-lg bg-emerald-50 border-2 border-emerald-500 text-xs shadow-xs">
+<div class="flex items-center gap-2 truncate">
+<span class="w-5 h-5 rounded flex items-center justify-center font-bold bg-emerald-600 text-white text-[11px]">A</span>
+<span class="text-emerald-950 font-semibold">413 Payload Too Large</span>
+</div>
+<span class="material-symbols-outlined text-emerald-600 text-base" data-icon="check_circle">check_circle</span>
+</div>
+<div class="flex items-center gap-2 p-2 rounded-lg bg-surface-container-low/70 border border-outline-variant/30 text-xs">
+<span class="w-5 h-5 rounded flex items-center justify-center font-bold bg-blue-500 text-white text-[11px]">B</span>
+<span class="text-on-surface">414 URI Too Long</span>
+</div>
+<div class="flex items-center gap-2 p-2 rounded-lg bg-surface-container-low/70 border border-outline-variant/30 text-xs">
+<span class="w-5 h-5 rounded flex items-center justify-center font-bold bg-purple-500 text-white text-[11px]">C</span>
+<span class="text-on-surface">422 Unprocessable Content</span>
+</div>
+<div class="flex items-center gap-2 p-2 rounded-lg bg-surface-container-low/70 border border-outline-variant/30 text-xs">
+<span class="w-5 h-5 rounded flex items-center justify-center font-bold bg-amber-500 text-white text-[11px]">D</span>
+<span class="text-on-surface">431 Request Header Fields Too Large</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-2 border-t border-outline-variant/30 text-xs text-outline font-body-sm">
+<div class="flex items-center gap-3">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm text-primary" data-icon="query_stats">query_stats</span>
+                      Used in 8 quizzes
+                    </span>
+<span>•</span>
+<span class="text-emerald-600 font-semibold">92% accuracy</span>
+</div>
+<span class="font-code-num text-[11px]">ID: q_http_02</span>
+</div>
+</div>
+</div>
+</article>
+<!-- ================= QUESTION CARD 3 (Unchecked) ================= -->
+<article class="bg-surface-container-lowest border border-outline-variant/60 rounded-xl p-4 shadow-sm hover:border-outline transition-all relative">
+<div class="flex items-start gap-3">
+<input class="mt-1 w-4 h-4 rounded text-primary-container focus:ring-primary-container border-outline-variant cursor-pointer" type="checkbox"/>
+<div class="flex-1 space-y-3">
+<div class="flex items-center justify-between flex-wrap gap-2">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-surface-container text-on-surface-variant font-label-sm">Web Engineering</span>
+<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-900 border border-emerald-300">Easy</span>
+<span class="inline-flex items-center gap-1 text-xs text-outline font-label-sm">
+<span class="material-symbols-outlined text-xs" data-icon="timer">timer</span> 15s
+                    </span>
+<span class="inline-flex items-center gap-1 text-xs text-outline font-label-sm">
+<span class="material-symbols-outlined text-xs" data-icon="stars">stars</span> 500 pts
+                    </span>
+</div>
+<div class="flex items-center gap-1 text-outline">
+<button class="p-1 hover:text-primary hover:bg-surface-container-low rounded transition-colors" title="Edit Question">
+<span class="material-symbols-outlined text-base" data-icon="edit">edit</span>
+</button>
+<button class="p-1 hover:text-primary hover:bg-surface-container-low rounded transition-colors" title="Duplicate">
+<span class="material-symbols-outlined text-base" data-icon="content_copy">content_copy</span>
+</button>
+<button class="p-1 hover:text-primary hover:bg-surface-container-low rounded transition-colors" title="Inspect JSON">
+<span class="material-symbols-outlined text-base text-primary" data-icon="data_object">data_object</span>
+</button>
+<button class="p-1 hover:text-error hover:bg-error-container/40 rounded transition-colors" title="Delete">
+<span class="material-symbols-outlined text-base" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+<h3 class="font-headline-sm text-base text-on-surface font-semibold leading-snug">
+                  What is the maximum execution time limit for free tier Cloudflare Workers CPU time?
+                </h3>
+<!-- Answer Pills Preview -->
+<div class="flex flex-wrap gap-2 pt-1 text-xs">
+<span class="px-2.5 py-1 rounded bg-surface-container-low text-on-surface border border-outline-variant/30">5 ms</span>
+<span class="px-2.5 py-1 rounded bg-emerald-50 border border-emerald-400 text-emerald-800 font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-xs" data-icon="check">check</span> 10 ms CPU
+                  </span>
+<span class="px-2.5 py-1 rounded bg-surface-container-low text-on-surface border border-outline-variant/30">50 ms</span>
+<span class="px-2.5 py-1 rounded bg-surface-container-low text-on-surface border border-outline-variant/30">128 ms</span>
+</div>
+<div class="flex items-center justify-between pt-2 border-t border-outline-variant/30 text-xs text-outline font-body-sm">
+<div class="flex items-center gap-3">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm text-primary" data-icon="query_stats">query_stats</span>
+                      Used in 22 quizzes
+                    </span>
+<span>•</span>
+<span class="text-emerald-600 font-semibold">79% accuracy</span>
+</div>
+<span class="font-code-num text-[11px]">ID: q_cf_cpu</span>
+</div>
+</div>
+</div>
+</article>
+<!-- ================= QUESTION CARD 4 (Unchecked) ================= -->
+<article class="bg-surface-container-lowest border border-outline-variant/60 rounded-xl p-4 shadow-sm hover:border-outline transition-all relative">
+<div class="flex items-start gap-3">
+<input class="mt-1 w-4 h-4 rounded text-primary-container focus:ring-primary-container border-outline-variant cursor-pointer" type="checkbox"/>
+<div class="flex-1 space-y-3">
+<div class="flex items-center justify-between flex-wrap gap-2">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-surface-container text-on-surface-variant font-label-sm">Web Engineering</span>
+<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-100 text-amber-900 border border-amber-300">Hard</span>
+<span class="inline-flex items-center gap-1 text-xs text-outline font-label-sm">
+<span class="material-symbols-outlined text-xs" data-icon="timer">timer</span> 45s
+                    </span>
+<span class="inline-flex items-center gap-1 text-xs text-outline font-label-sm">
+<span class="material-symbols-outlined text-xs" data-icon="stars">stars</span> 1,500 pts
+                    </span>
+</div>
+<div class="flex items-center gap-1 text-outline">
+<button class="p-1 hover:text-primary hover:bg-surface-container-low rounded transition-colors" title="Edit Question">
+<span class="material-symbols-outlined text-base" data-icon="edit">edit</span>
+</button>
+<button class="p-1 hover:text-primary hover:bg-surface-container-low rounded transition-colors" title="Duplicate">
+<span class="material-symbols-outlined text-base" data-icon="content_copy">content_copy</span>
+</button>
+<button class="p-1 hover:text-primary hover:bg-surface-container-low rounded transition-colors" title="Inspect JSON">
+<span class="material-symbols-outlined text-base text-primary" data-icon="data_object">data_object</span>
+</button>
+<button class="p-1 hover:text-error hover:bg-error-container/40 rounded transition-colors" title="Delete">
+<span class="material-symbols-outlined text-base" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+<h3 class="font-headline-sm text-base text-on-surface font-semibold leading-snug">
+                  In distributed systems, which guarantees does PACELC theorem extend over CAP?
+                </h3>
+<p class="text-xs text-outline line-clamp-1">
+                  Options: If Partition (Availability vs Consistency) Else (Latency vs Consistency) • Network partitioning recovery vectors...
+                </p>
+<div class="flex items-center justify-between pt-2 border-t border-outline-variant/30 text-xs text-outline font-body-sm">
+<div class="flex items-center gap-3">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm text-primary" data-icon="query_stats">query_stats</span>
+                      Used in 5 quizzes
+                    </span>
+<span>•</span>
+<span class="text-amber-600 font-semibold">61% accuracy</span>
+</div>
+<span class="font-code-num text-[11px]">ID: q_pacelc_01</span>
+</div>
+</div>
+</div>
+</article>
+</div>
+<!-- Pagination Bar -->
+<div class="flex items-center justify-between pt-2 text-xs font-label-md text-outline">
+<span>Showing 1-4 of 142 items</span>
+<div class="flex items-center gap-1">
+<button class="px-2.5 py-1 border border-outline-variant/50 rounded bg-surface-container-lowest text-on-surface hover:bg-surface-container-low disabled:opacity-50" disabled="">Previous</button>
+<button class="px-3 py-1 bg-primary-container text-on-primary rounded font-bold">1</button>
+<button class="px-3 py-1 border border-outline-variant/50 rounded bg-surface-container-lowest text-on-surface hover:bg-surface-container-low">2</button>
+<button class="px-3 py-1 border border-outline-variant/50 rounded bg-surface-container-lowest text-on-surface hover:bg-surface-container-low">3</button>
+<span class="px-1">...</span>
+<button class="px-3 py-1 border border-outline-variant/50 rounded bg-surface-container-lowest text-on-surface hover:bg-surface-container-low">36</button>
+<button class="px-2.5 py-1 border border-outline-variant/50 rounded bg-surface-container-lowest text-on-surface hover:bg-surface-container-low">Next</button>
+</div>
+</div>
+</section>
+<!-- ==================== RIGHT PANE: JSON SCHEMA VAULT (Col 3) ==================== -->
+<aside class="lg:col-span-3 space-y-4">
+<!-- Live JSON Vault Card -->
+<div class="bg-surface-container-lowest border border-outline-variant/60 rounded-xl p-4 shadow-sm space-y-3">
+<div class="flex items-center justify-between pb-2 border-b border-outline-variant/30">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="terminal">terminal</span>
+<h2 class="font-headline-sm text-sm font-bold text-on-surface uppercase tracking-wider">JSON Schema Vault</h2>
+</div>
+<span class="px-2 py-0.5 rounded text-[10px] font-code-num font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              RFC 8259 Compliant
+            </span>
+</div>
+<p class="text-xs text-outline font-body-sm">
+            Live preview of selected bank questions structured for automated API deployment and offline player sync.
+          </p>
+<!-- Interactive JSON Code Window -->
+<div class="relative bg-inverse-surface rounded-lg p-3 font-code-num text-xs text-inverse-on-surface overflow-x-auto shadow-inner border border-outline-variant/20">
+<div class="absolute top-2 right-2 flex items-center gap-1">
+<button class="p-1 rounded bg-white/10 hover:bg-white/20 text-white transition-colors" onclick="navigator.clipboard.writeText(document.getElementById('json-code-block').innerText)" title="Copy Raw JSON">
+<span class="material-symbols-outlined text-sm" data-icon="content_copy">content_copy</span>
+</button>
+</div>
+<pre class="text-[11px] leading-relaxed font-code-num" id="json-code-block"><code><span class="text-primary-fixed-dim">{</span>
+  <span class="text-tertiary-fixed-dim">"bankId"</span>: <span class="text-emerald-300">"bank_web_eng_01"</span>,
+  <span class="text-tertiary-fixed-dim">"version"</span>: <span class="text-emerald-300">"2.4"</span>,
+  <span class="text-tertiary-fixed-dim">"schemaVersion"</span>: <span class="text-amber-300">"v1.core.quiz"</span>,
+  <span class="text-tertiary-fixed-dim">"questions"</span>: [
+    {
+      <span class="text-tertiary-fixed-dim">"id"</span>: <span class="text-emerald-300">"q_cf_01"</span>,
+      <span class="text-tertiary-fixed-dim">"prompt"</span>: <span class="text-emerald-300">"What is the primary..."</span>,
+      <span class="text-tertiary-fixed-dim">"timeLimit"</span>: <span class="text-amber-300">30</span>,
+      <span class="text-tertiary-fixed-dim">"points"</span>: <span class="text-amber-300">1000</span>,
+      <span class="text-tertiary-fixed-dim">"options"</span>: [
+        <span class="text-emerald-300">"Full OS VM"</span>,
+        <span class="text-emerald-300">"Pre-forked Node.js"</span>,
+        <span class="text-emerald-300">"V8 Isolates"</span>,
+        <span class="text-emerald-300">"Wasm Hypervisor"</span>
+      ],
+      <span class="text-tertiary-fixed-dim">"correctIndex"</span>: <span class="text-amber-300">2</span>
+    }
+  ]
+<span class="text-primary-fixed-dim">}</span></code></pre>
+</div>
+<!-- Actions: Copy Schema, Validate, Download -->
+<div class="grid grid-cols-2 gap-2 pt-1">
+<button class="px-2.5 py-1.5 bg-surface-container-low hover:bg-surface-container text-on-surface font-label-sm text-xs rounded-lg border border-outline-variant/50 tactile-btn flex items-center justify-center gap-1 transition-all">
+<span class="material-symbols-outlined text-sm text-primary" data-icon="check_circle">check_circle</span>
+<span>Validate JSON</span>
+</button>
+<button class="px-2.5 py-1.5 bg-surface-container-low hover:bg-surface-container text-on-surface font-label-sm text-xs rounded-lg border border-outline-variant/50 tactile-btn flex items-center justify-center gap-1 transition-all">
+<span class="material-symbols-outlined text-sm" data-icon="file_download">file_download</span>
+<span>Download .json</span>
+</button>
+</div>
+<!-- Cloud sync metadata -->
+<div class="p-2.5 rounded-lg bg-surface-container-low/70 border border-outline-variant/30 flex items-start gap-2">
+<span class="material-symbols-outlined text-primary text-base mt-0.5" data-icon="cloud_sync">cloud_sync</span>
+<div class="text-[11px] leading-tight text-on-surface-variant">
+<span class="font-semibold text-on-surface">Auto-sync Active:</span> Connected to Supabase Cloud DB &amp; Durable Objects real-time cache.
+            </div>
+</div>
+</div>
+<!-- Recent Exports History Card -->
+<div class="bg-surface-container-lowest border border-outline-variant/60 rounded-xl p-4 shadow-sm space-y-3">
+<div class="flex items-center justify-between pb-1 border-b border-outline-variant/20">
+<h2 class="font-headline-sm text-sm font-bold text-on-surface uppercase tracking-wider">Recent Exports</h2>
+<span class="material-symbols-outlined text-outline text-base" data-icon="history">history</span>
+</div>
+<div class="space-y-2.5 text-xs">
+<div class="flex items-center justify-between p-2 rounded-lg bg-surface-container-low border border-outline-variant/30 hover:border-primary-container transition-all cursor-pointer">
+<div class="flex items-center gap-2 truncate">
+<span class="material-symbols-outlined text-primary text-base" data-icon="description">description</span>
+<div class="truncate">
+<div class="font-semibold text-on-surface truncate">web-engineering-v2.json</div>
+<div class="text-[10px] text-outline">Today, 14:20 • 42 questions</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline hover:text-primary" data-icon="download">download</span>
+</div>
+<div class="flex items-center justify-between p-2 rounded-lg bg-surface-container-low border border-outline-variant/30 hover:border-primary-container transition-all cursor-pointer">
+<div class="flex items-center gap-2 truncate">
+<span class="material-symbols-outlined text-primary text-base" data-icon="description">description</span>
+<div class="truncate">
+<div class="font-semibold text-on-surface truncate">company-culture.json</div>
+<div class="text-[10px] text-outline">Yesterday • 28 questions</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline hover:text-primary" data-icon="download">download</span>
+</div>
+</div>
+</div>
+<!-- Import Dropzone Shortcut -->
+<div class="border-2 border-dashed border-outline-variant hover:border-primary-container bg-surface-container-low/40 rounded-xl p-5 text-center space-y-2 cursor-pointer transition-colors group">
+<div class="w-10 h-10 mx-auto rounded-full bg-surface-container flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-xl" data-icon="upload_file">upload_file</span>
+</div>
+<div class="font-label-md text-label-md text-on-surface font-semibold">Drop JSON schema here</div>
+<p class="text-[11px] text-outline">Supports QuizPlatform v1 &amp; v2, CSV, and Kahoot® spreadsheet exports.</p>
+</div>
+</aside>
+</div>
+</main>
+<!-- ==================== STATUS FOOTER / HUD ==================== -->
+<footer class="bg-surface-container-lowest border-t border-outline-variant/40 py-3 px-space-lg md:px-margin mt-auto">
+<div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-outline font-body-sm">
+<div class="flex items-center gap-3">
+<span class="flex items-center gap-1.5 font-semibold text-on-surface">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          Cluster: US-East-1 (Primary)
+        </span>
+<span>•</span>
+<span>Schema Engine: v2.4.1</span>
+<span>•</span>
+<span>WebSocket Engine: 0 ms delay</span>
+</div>
+<div class="flex items-center gap-4">
+<a class="hover:text-primary transition-colors" href="#">Schema Documentation</a>
+<a class="hover:text-primary transition-colors" href="#">API Keys</a>
+<a class="hover:text-primary transition-colors" href="#">Support Desk</a>
+<span class="text-on-surface font-code-num">Acme Workspace © 2025</span>
+</div>
+</div>
+</footer>
+</body></html>

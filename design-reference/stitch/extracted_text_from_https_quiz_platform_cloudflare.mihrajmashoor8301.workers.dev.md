@@ -1,0 +1,3 @@
+[🎯 QuizPlatform](/)[Join Room](/)[Host Dashboard](/host)
+
+Loading host sign-in…

@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>QuizPlatform - Podium &amp; Live Session Summary</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS with Container Queries and Forms -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-tint": "#5038f8",
+            "secondary-fixed-dim": "#c4c0ff",
+            "surface-dim": "#cbdbf5",
+            "on-surface": "#0b1c30",
+            "inverse-primary": "#c5c0ff",
+            "surface-container-lowest": "#ffffff",
+            "on-primary-container": "#e5e1ff",
+            "surface": "#f8f9ff",
+            "on-tertiary-container": "#b3eeff",
+            "surface-variant": "#d3e4fe",
+            "tertiary-fixed": "#acedff",
+            "error-container": "#ffdad6",
+            "on-secondary-fixed-variant": "#3407df",
+            "on-error-container": "#93000a",
+            "on-primary": "#ffffff",
+            "secondary": "#3f22e8",
+            "tertiary-fixed-dim": "#4cd7f6",
+            "on-secondary-fixed": "#120068",
+            "on-tertiary": "#ffffff",
+            "surface-container-low": "#eff4ff",
+            "outline": "#777588",
+            "secondary-container": "#5947ff",
+            "primary": "#3e1ae8",
+            "on-tertiary-fixed": "#001f26",
+            "on-surface-variant": "#474556",
+            "on-tertiary-fixed-variant": "#004e5c",
+            "background": "#f8f9ff",
+            "on-secondary": "#ffffff",
+            "secondary-fixed": "#e3dfff",
+            "surface-container": "#e5eeff",
+            "primary-fixed-dim": "#c5c0ff",
+            "surface-bright": "#f8f9ff",
+            "on-primary-fixed": "#130067",
+            "surface-container-highest": "#d3e4fe",
+            "on-background": "#0b1c30",
+            "inverse-surface": "#213145",
+            "on-secondary-container": "#e9e5ff",
+            "outline-variant": "#c8c4d9",
+            "error": "#ba1a1a",
+            "primary-fixed": "#e3dfff",
+            "surface-container-high": "#dce9ff",
+            "inverse-on-surface": "#eaf1ff",
+            "tertiary": "#005665",
+            "primary-container": "#5842ff",
+            "on-primary-fixed-variant": "#3600e1",
+            "tertiary-container": "#007083",
+            "on-error": "#ffffff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "margin-mobile": "1rem",
+            "space-md": "1rem",
+            "space-sm": "0.5rem",
+            "margin": "2rem",
+            "space-xl": "2.5rem",
+            "space-lg": "1.5rem",
+            "gutter": "1.5rem",
+            "space-xs": "0.25rem",
+            "gutter-mobile": "1rem"
+          },
+          "fontFamily": {
+            "label-sm": ["Plus Jakarta Sans"],
+            "label-lg": ["Plus Jakarta Sans"],
+            "display-xl": ["Plus Jakarta Sans"],
+            "label-md": ["Plus Jakarta Sans"],
+            "display-xl-mobile": ["Plus Jakarta Sans"],
+            "body-md": ["Inter"],
+            "body-sm": ["Inter"],
+            "body-lg": ["Inter"],
+            "headline-lg": ["Plus Jakarta Sans"],
+            "code-num": ["Inter"],
+            "headline-lg-mobile": ["Plus Jakarta Sans"],
+            "headline-sm": ["Plus Jakarta Sans"],
+            "headline-md": ["Plus Jakarta Sans"]
+          },
+          "fontSize": {
+            "label-sm": ["0.75rem", { "lineHeight": "1rem", "letterSpacing": "0.04em", "fontWeight": "700" }],
+            "label-lg": ["1rem", { "lineHeight": "1.5rem", "letterSpacing": "0.01em", "fontWeight": "600" }],
+            "display-xl": ["3.5rem", { "lineHeight": "4rem", "letterSpacing": "-0.03em", "fontWeight": "800" }],
+            "label-md": ["0.875rem", { "lineHeight": "1.25rem", "letterSpacing": "0.005em", "fontWeight": "600" }],
+            "display-xl-mobile": ["2.25rem", { "lineHeight": "2.75rem", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+            "body-md": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "400" }],
+            "body-sm": ["0.875rem", { "lineHeight": "1.25rem", "fontWeight": "400" }],
+            "body-lg": ["1.125rem", { "lineHeight": "1.75rem", "fontWeight": "400" }],
+            "headline-lg": ["2.25rem", { "lineHeight": "2.75rem", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "code-num": ["1.125rem", { "lineHeight": "1.5rem", "letterSpacing": "0.05em", "fontWeight": "700" }],
+            "headline-lg-mobile": ["1.75rem", { "lineHeight": "2.25rem", "letterSpacing": "-0.015em", "fontWeight": "700" }],
+            "headline-sm": ["1.25rem", { "lineHeight": "1.75rem", "fontWeight": "600" }],
+            "headline-md": ["1.5rem", { "lineHeight": "2rem", "letterSpacing": "-0.01em", "fontWeight": "600" }]
+          }
+        }
+      }
+    };
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    
+    /* Subtle confetti floating simulation */
+    @keyframes float-gentle {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-8px) rotate(4deg); }
+    }
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 0.85; filter: drop-shadow(0 0 15px rgba(88,66,255,0.35)); }
+      50% { opacity: 1; filter: drop-shadow(0 0 25px rgba(88,66,255,0.6)); }
+    }
+    .animate-float {
+      animation: float-gentle 4s ease-in-out infinite;
+    }
+    .animate-glow {
+      animation: pulse-glow 3s ease-in-out infinite;
+    }
+
+    /* Tactile button bevel styling as per Design System */
+    .btn-tactile {
+      box-shadow: 0 4px 0 0 #3e1ae8;
+      transition: all 0.1s ease-out;
+    }
+    .btn-tactile:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 0 #3e1ae8;
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface min-h-screen flex flex-col font-body-md antialiased selection:bg-primary-container selection:text-surface-container-lowest">
+<!-- TOP COMMAND / PRESENTATION BAR (Docked, Glassmorphic HUD) -->
+<header class="docked full-width top-0 z-50 bg-surface-container-lowest/80 dark:bg-inverse-surface/80 backdrop-blur-md border-b border-outline-variant/40 dark:border-outline/30 shadow-sm dark:shadow-none sticky">
+<div class="flex justify-between items-center w-full px-space-lg md:px-margin max-w-7xl mx-auto h-16">
+<!-- Left: Logo, Arena Title & Mode Badge -->
+<div class="flex items-center gap-space-md">
+<div class="flex items-center gap-space-xs cursor-pointer">
+<span class="material-symbols-outlined text-primary text-2xl" style="font-variation-settings: 'FILL' 1;">bolt</span>
+<span class="font-headline-md text-headline-md font-bold text-primary dark:text-inverse-primary tracking-tight">QuizPlatform</span>
+</div>
+<div class="h-6 w-px bg-outline-variant/40 hidden md:block"></div>
+<div class="hidden lg:flex items-center gap-space-sm">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary-container/10 border border-primary-container/30 text-primary font-label-sm text-label-sm uppercase tracking-wider">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+            Podium Stage
+          </span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-semibold leading-tight">Full-Stack JavaScript &amp; Cloudflare Workers Arena</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-2">
+<span>15 of 15 Questions Completed</span>
+<span>•</span>
+<span class="flex items-center gap-1 font-mono text-xs text-tertiary">
+<span class="material-symbols-outlined text-xs">dns</span> 18ms Edge Sync
+              </span>
+</span>
+</div>
+</div>
+</div>
+<!-- Center / Room Telemetry Pills -->
+<div class="hidden xl:flex items-center gap-space-xs bg-surface-container px-3 py-1.5 rounded-lg border border-outline-variant/30">
+<span class="font-label-sm text-label-sm text-on-surface-variant">PIN:</span>
+<span class="font-code-num text-code-num text-on-surface tracking-wider bg-surface-container-lowest px-2 py-0.5 rounded border border-outline-variant/20 shadow-xs">849 210</span>
+<span class="mx-1 text-outline-variant">•</span>
+<span class="flex items-center gap-1 font-label-sm text-label-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-sm text-primary">groups</span> 24 Players
+        </span>
+</div>
+<!-- Right: Sound, Fullscreen, Actions -->
+<div class="flex items-center gap-space-sm">
+<!-- Fanfare Audio Toggle -->
+<button class="p-2 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container active:scale-95 transition-all flex items-center justify-center" id="fanfareBtn" title="Toggle Victory Fanfare Audio">
+<span class="material-symbols-outlined" data-icon="volume_up">volume_up</span>
+</button>
+<!-- Fullscreen Host Mode -->
+<button class="p-2 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container active:scale-95 transition-all hidden sm:flex items-center justify-center" id="fullscreenBtn" title="Projector Fullscreen Mode">
+<span class="material-symbols-outlined" data-icon="fullscreen">fullscreen</span>
+</button>
+<div class="h-6 w-px bg-outline-variant/40"></div>
+<!-- Export Dropdown / Action -->
+<button class="hidden md:inline-flex items-center gap-1.5 px-3 py-2 text-on-surface font-label-md text-label-md bg-surface-container-lowest border border-outline-variant/50 rounded-lg hover:border-primary hover:text-primary transition-colors active:scale-95">
+<span class="material-symbols-outlined text-base">download</span>
+<span>Export CSV</span>
+</button>
+<!-- Primary Host Action Button (Tactile Electric Indigo) -->
+<button class="btn-tactile inline-flex items-center gap-2 px-4 py-2 bg-primary-container text-on-primary font-label-md text-label-md rounded-lg hover:bg-primary transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-base" data-icon="replay">replay</span>
+<span>New Arena</span>
+</button>
+</div>
+</div>
+</header>
+<!-- MAIN PODIUM CANVAS -->
+<main class="flex-1 max-w-7xl w-full mx-auto px-space-md md:px-margin py-space-lg flex flex-col gap-space-xl">
+<!-- CELEBRATORY HERO BANNER & PODIUM ARENA -->
+<section class="relative bg-gradient-to-b from-surface-container-low via-surface-container-lowest to-surface-container-low border border-outline-variant/50 rounded-xl p-space-lg md:p-space-xl overflow-hidden shadow-sm">
+<!-- Subtle Decorative Confetti Particles Background SVG -->
+<div class="absolute inset-0 pointer-events-none overflow-hidden opacity-45">
+<svg class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+<circle cx="8%" cy="15%" fill="#5842FF" r="6"></circle>
+<polygon fill="#f59e0b" points="120,45 130,65 110,65"></polygon>
+<rect fill="#10b981" height="12" transform="rotate(25 220 50)" width="12" x="22%" y="12%"></rect>
+<rect fill="#3b82f6" height="8" transform="rotate(-30 850 70)" width="14" x="85%" y="18%"></rect>
+<circle cx="92%" cy="30%" fill="#ef4444" r="5"></circle>
+<polygon fill="#8b5cf6" points="800,220 815,245 790,245" transform="rotate(45 800 230)"></polygon>
+<rect fill="#f59e0b" height="10" transform="rotate(15 150 280)" width="10" x="15%" y="75%"></rect>
+<circle cx="78%" cy="85%" fill="#06b6d4" r="7"></circle>
+<polygon fill="#ec4899" points="70,240 85,260 65,260" transform="rotate(60 70 250)"></polygon>
+</svg>
+</div>
+<!-- Stage Atmosphere Header -->
+<div class="relative z-10 text-center max-w-2xl mx-auto mb-space-xl">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed text-label-sm font-label-sm uppercase tracking-widest mb-space-sm border border-secondary-fixed-dim/60 shadow-xs">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">military_tech</span>
+          Grand Final Standings
+        </div>
+<h1 class="font-headline-lg text-headline-lg font-bold text-on-surface tracking-tight mb-2">
+          Champion of the Arena!
+        </h1>
+<p class="font-body-md text-body-md text-on-surface-variant">
+          15 high-speed distributed system questions solved. Top 3 finalists achieved master-class precision under time pressure.
+        </p>
+</div>
+<!-- 3D ISOMETRIC PODIUM STAGE (Rank 2 Silver, Rank 1 Gold, Rank 3 Bronze) -->
+<div class="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-6 items-end max-w-4xl mx-auto pt-6 pb-2">
+<!-- ================= RANK 2: SILVER (Left) ================= -->
+<div class="flex flex-col items-center order-2 md:order-1">
+<!-- Player Card Overhead Floating Info -->
+<div class="flex flex-col items-center mb-3 animate-float" style="animation-delay: 0.5s;">
+<!-- Avatar with Silver Wreath -->
+<div class="relative mb-2">
+<div class="w-20 h-20 rounded-full border-4 border-slate-300 shadow-md overflow-hidden bg-slate-100 flex items-center justify-center">
+<img class="w-full h-full object-cover" data-alt="Close up professional portrait of a software engineer with glasses smiling warmly against a clean modern office studio background with cool slate and violet lighting tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBMynxi4Xtto1UYqiPVb_SP4fcr7gP4FFbbK99tk-o-wfRWJq9nIWMGzxrkmKX6RppI-cilI0xBDzSOdqxOA-fpky0CWlDkHdI9MvOtHyuhQlv5lvL2juAM5dMv4qmj1G2JQGWGUS6LdubqAoppgDelvGcib0CumVu96fkdlmIfbsWm6bf1TwXh_mrV02hJtneCLyFsxQk7IeV-nJ-fEJPBLVubMNcIUqITJV-BM9n7"/>
+</div>
+<div class="absolute -bottom-2 -right-1 bg-slate-700 text-white rounded-full p-1 border-2 border-white shadow-xs flex items-center justify-center">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">shield</span>
+</div>
+</div>
+<!-- Name & Handle -->
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface">Alex_Dev</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant font-mono">@alex_chen</span>
+<!-- Badges -->
+<div class="flex items-center gap-1.5 mt-1.5">
+<span class="px-2 py-0.5 bg-surface-container-highest text-on-surface font-label-sm text-label-sm rounded-full">
+                14/15 Correct
+              </span>
+<span class="px-2 py-0.5 bg-amber-50 text-amber-800 border border-amber-200 font-label-sm text-label-sm rounded-full flex items-center gap-0.5">
+                8 Streak <span class="material-symbols-outlined text-xs text-amber-600" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+</span>
+</div>
+</div>
+<!-- Silver Pillar 2 -->
+<div class="w-full h-52 bg-gradient-to-b from-slate-200 via-slate-100 to-slate-200 rounded-t-xl border-t-4 border-l border-r border-slate-300 p-4 flex flex-col items-center justify-between shadow-md relative overflow-hidden group">
+<div class="w-full flex justify-between items-center text-slate-500 font-label-sm text-label-sm border-b border-slate-300 pb-2">
+<span>2ND PLACE</span>
+<span class="material-symbols-outlined text-slate-400">workspace_premium</span>
+</div>
+<div class="text-center my-auto">
+<span class="block font-display-xl-mobile md:font-display-xl text-3xl font-extrabold text-slate-700 leading-none">2</span>
+<span class="font-code-num text-code-num font-bold text-slate-800 tracking-tight block mt-1">13,420 <span class="text-xs font-normal text-slate-500">PTS</span></span>
+</div>
+<div class="w-full text-center bg-slate-300/40 rounded py-1 font-body-sm text-xs text-slate-600">
+              Avg Time: 1.9s
+            </div>
+</div>
+</div>
+<!-- ================= RANK 1: GOLD (Center / Tallest) ================= -->
+<div class="flex flex-col items-center order-1 md:order-2 z-20">
+<!-- Winner Overhead Floating Info -->
+<div class="flex flex-col items-center mb-3 animate-float">
+<!-- Glowing Crown Badge -->
+<div class="relative mb-2">
+<div class="absolute -top-7 left-1/2 -translate-x-1/2 flex items-center justify-center animate-bounce">
+<span class="material-symbols-outlined text-amber-500 text-3xl drop-shadow-md" style="font-variation-settings: 'FILL' 1;">crown</span>
+</div>
+<div class="w-28 h-28 rounded-full border-4 border-amber-400 ring-4 ring-amber-300/40 shadow-xl overflow-hidden bg-amber-50 flex items-center justify-center">
+<img class="w-full h-full object-cover" data-alt="Vibrant studio headshot of a talented female fullstack programmer smiling confidently with subtle golden ambient rim lighting in an ultra-modern tech headquarters." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBUyYV9hfJgLEnwW_U9HENCGB0zeJ_nWsN-3n3AkYAIVbGMTnST8Sy-CKFNJjjAserWfmLz-Y6tNRHl_jirL5Ky7Qsg6zMZktF7Pum0LP11eTB7kdJgNJ3UfwDa_NweOoAeoLsKZ-2MXeG0LTM6CfAf2F7ukA5sAzsvQ00-5eI16BvZ8D5ESqzTZWqCTPFgim3YyTRxQJ63-f1LaFNFlMyckgSNAYWvhhcvtAEHX9H_"/>
+</div>
+<div class="absolute -bottom-2 -right-1 bg-amber-500 text-white rounded-full p-1.5 border-2 border-white shadow-md flex items-center justify-center">
+<span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">military_tech</span>
+</div>
+</div>
+<!-- Name & Handle -->
+<div class="flex items-center gap-1.5">
+<span class="font-headline-md text-headline-md font-bold text-on-surface">SarahCoder</span>
+<span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings: 'FILL' 1;" title="Verified Pro Player">verified</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant font-mono">@sarah_dev</span>
+<!-- Badges -->
+<div class="flex items-center gap-1.5 mt-2">
+<span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 font-label-sm text-label-sm rounded-full font-bold">
+                100% Accuracy (15/15)
+              </span>
+<span class="px-2.5 py-0.5 bg-orange-100 text-orange-800 border border-orange-300 font-label-sm text-label-sm rounded-full flex items-center gap-0.5 font-bold">
+                14 Streak 🔥
+              </span>
+</div>
+</div>
+<!-- Gold Pillar 1 (Tallest) -->
+<div class="w-full h-64 bg-gradient-to-b from-amber-200 via-amber-100 to-amber-200/90 rounded-t-xl border-t-4 border-l border-r border-amber-400 p-5 flex flex-col items-center justify-between shadow-xl relative overflow-hidden group">
+<div class="w-full flex justify-between items-center text-amber-800 font-label-sm text-label-sm border-b border-amber-300 pb-2">
+<span class="tracking-wider">ARENA CHAMPION</span>
+<span class="material-symbols-outlined text-amber-600" style="font-variation-settings: 'FILL' 1;">trophy</span>
+</div>
+<div class="text-center my-auto">
+<span class="block font-display-xl text-5xl font-extrabold text-amber-700 leading-none">1</span>
+<div class="mt-1">
+<span class="font-code-num text-xl md:text-2xl font-extrabold text-amber-900 tracking-tight">14,890</span>
+<span class="text-xs font-bold text-amber-700 uppercase tracking-widest block">Score Points</span>
+</div>
+</div>
+<div class="w-full text-center bg-amber-300/50 rounded py-1.5 font-label-sm text-xs text-amber-900 font-semibold shadow-xs">
+              ⚡ Lightning Avg: 1.4s
+            </div>
+</div>
+</div>
+<!-- ================= RANK 3: BRONZE (Right) ================= -->
+<div class="flex flex-col items-center order-3">
+<!-- Bronze Overhead Floating Info -->
+<div class="flex flex-col items-center mb-3 animate-float" style="animation-delay: 1.2s;">
+<!-- Avatar with Bronze Medal -->
+<div class="relative mb-2">
+<div class="w-20 h-20 rounded-full border-4 border-amber-700/50 shadow-md overflow-hidden bg-orange-50 flex items-center justify-center">
+<img class="w-full h-full object-cover" data-alt="Dynamic portrait of an enthusiastic young software developer wearing casual tech hoodie with subtle purple and warm copper rim light in an architectural loft setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1qCXmQ5rQ42hz-B-UHA8naL2a3NLskgbUT43t-gP7Z0CFoCzUxUCbS5liQx2Og_arUPZ6Ahy83xtRbOTN9a89QJWGfWJQ-r9A9vtof2MDrObK_PH_xV8HREuOJwl_Og2yymD1qXIIlXopc59dQKvFnFr2GcF7QB5ffb57LxUl0qi3D8QRYcGIjh3I_dxSHUweQVtYXPx-4cryQsEmyRBOCzj4p7g7lu3shEWf9eUF"/>
+</div>
+<div class="absolute -bottom-2 -right-1 bg-amber-800 text-white rounded-full p-1 border-2 border-white shadow-xs flex items-center justify-center">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+</div>
+</div>
+<!-- Name & Handle -->
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface">PixelNinja</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant font-mono">@pixel_ninja</span>
+<!-- Badges -->
+<div class="flex items-center gap-1.5 mt-1.5">
+<span class="px-2 py-0.5 bg-surface-container-highest text-on-surface font-label-sm text-label-sm rounded-full">
+                13/15 Correct
+              </span>
+<span class="px-2 py-0.5 bg-amber-50 text-amber-800 border border-amber-200 font-label-sm text-label-sm rounded-full flex items-center gap-0.5">
+                5 Streak <span class="material-symbols-outlined text-xs text-amber-600" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+</span>
+</div>
+</div>
+<!-- Bronze Pillar 3 -->
+<div class="w-full h-44 bg-gradient-to-b from-orange-200 via-amber-100 to-orange-200 rounded-t-xl border-t-4 border-l border-r border-orange-400 p-4 flex flex-col items-center justify-between shadow-md relative overflow-hidden group">
+<div class="w-full flex justify-between items-center text-orange-900 font-label-sm text-label-sm border-b border-orange-300 pb-2">
+<span>3RD PLACE</span>
+<span class="material-symbols-outlined text-orange-700">military_tech</span>
+</div>
+<div class="text-center my-auto">
+<span class="block font-display-xl-mobile md:font-display-xl text-3xl font-extrabold text-orange-800 leading-none">3</span>
+<span class="font-code-num text-code-num font-bold text-orange-950 tracking-tight block mt-1">12,150 <span class="text-xs font-normal text-orange-800">PTS</span></span>
+</div>
+<div class="w-full text-center bg-orange-300/40 rounded py-1 font-body-sm text-xs text-orange-900">
+              Avg Time: 2.2s
+            </div>
+</div>
+</div>
+</div>
+<!-- Base of Podium Groundline -->
+<div class="w-full h-3 bg-surface-container-highest rounded-full max-w-4xl mx-auto shadow-inner border border-outline-variant/30"></div>
+</section>
+<!-- CONTENT BENTO GRID: STANDINGS TABLE (Left 8 Cols) & ANALYTICS RAIL (Right 4 Cols) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+<!-- ================= LEFT: PARTICIPANT STANDINGS (Ranks 4-10+) ================= -->
+<div class="lg:col-span-8 flex flex-col gap-space-md">
+<!-- Controls & Filter Toolbar -->
+<div class="bg-surface-container-lowest border border-outline-variant/40 rounded-xl p-space-md shadow-sm flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-space-md">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary">leaderboard</span>
+<h2 class="font-headline-sm text-headline-sm font-bold text-on-surface">
+              Leaderboard Standings
+            </h2>
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm">
+              24 Runners
+            </span>
+</div>
+<!-- Search Input -->
+<div class="relative w-full sm:w-64">
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-on-surface-variant text-lg">search</span>
+<input class="w-full pl-9 pr-3 py-1.5 text-body-sm font-body-sm bg-surface rounded-lg border border-outline-variant/50 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-outline" placeholder="Filter by rank or handle..." type="text"/>
+</div>
+</div>
+<!-- Leaderboard Table Container -->
+<div class="bg-surface-container-lowest border border-outline-variant/40 rounded-xl shadow-sm overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant/40 text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
+<th class="py-3 px-4 w-16 text-center">Rank</th>
+<th class="py-3 px-4">Player</th>
+<th class="py-3 px-4 text-center">Accuracy</th>
+<th class="py-3 px-4 text-center">Streak</th>
+<th class="py-3 px-4 text-center">Avg Speed</th>
+<th class="py-3 px-4 text-right">Total Score</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/30 text-body-sm font-body-sm">
+<!-- Rank #4 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-3.5 px-4 text-center">
+<span class="w-7 h-7 inline-flex items-center justify-center rounded-full bg-surface-container font-code-num text-xs font-bold text-on-surface">#4</span>
+</td>
+<td class="py-3.5 px-4">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center font-bold text-primary text-xs">
+                        TJ
+                      </div>
+<div>
+<div class="flex items-center gap-1.5">
+<span class="font-label-md text-label-md font-bold text-on-surface">TurboJS</span>
+<span class="px-1.5 py-0.2 rounded text-[10px] bg-primary-container text-white font-bold tracking-tight">FASTEST</span>
+</div>
+<span class="text-xs text-on-surface-variant font-mono">@turbo_v8</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4 text-center">
+<span class="inline-flex items-center gap-1 font-semibold text-on-surface">
+                      86.7% <span class="text-xs text-on-surface-variant font-normal">(13/15)</span>
+</span>
+</td>
+<td class="py-3.5 px-4 text-center">
+<span class="inline-flex items-center gap-0.5 text-xs font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                      7 <span class="material-symbols-outlined text-xs text-amber-600" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+</span>
+</td>
+<td class="py-3.5 px-4 text-center font-mono text-xs text-tertiary font-bold">
+                    1.8s
+                  </td>
+<td class="py-3.5 px-4 text-right">
+<span class="font-code-num text-code-num font-bold text-primary">11,800</span>
+</td>
+</tr>
+<!-- Rank #5 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-3.5 px-4 text-center">
+<span class="w-7 h-7 inline-flex items-center justify-center rounded-full bg-surface-container font-code-num text-xs font-bold text-on-surface">#5</span>
+</td>
+<td class="py-3.5 px-4">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-full bg-tertiary-container/10 border border-tertiary-container/20 flex items-center justify-center font-bold text-tertiary text-xs">
+                        QC
+                      </div>
+<div>
+<div class="font-label-md text-label-md font-bold text-on-surface">QuantumCoder</div>
+<span class="text-xs text-on-surface-variant font-mono">@quantum_k</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4 text-center">
+<span class="inline-flex items-center gap-1 font-semibold text-on-surface">
+                      80.0% <span class="text-xs text-on-surface-variant font-normal">(12/15)</span>
+</span>
+</td>
+<td class="py-3.5 px-4 text-center">
+<span class="inline-flex items-center gap-0.5 text-xs font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                      6 <span class="material-symbols-outlined text-xs text-amber-600" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+</span>
+</td>
+<td class="py-3.5 px-4 text-center font-mono text-xs text-on-surface font-semibold">
+                    2.1s
+                  </td>
+<td class="py-3.5 px-4 text-right">
+<span class="font-code-num text-code-num font-bold text-primary">10,950</span>
+</td>
+</tr>
+<!-- Rank #6 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-3.5 px-4 text-center">
+<span class="w-7 h-7 inline-flex items-center justify-center rounded-full bg-surface-container font-code-num text-xs font-bold text-on-surface">#6</span>
+</td>
+<td class="py-3.5 px-4">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-full bg-surface-variant border border-outline-variant/30 flex items-center justify-center font-bold text-on-surface-variant text-xs">
+                        DD
+                      </div>
+<div>
+<div class="font-label-md text-label-md font-bold text-on-surface">DevDave</div>
+<span class="text-xs text-on-surface-variant font-mono">@dave_code</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4 text-center">
+<span class="inline-flex items-center gap-1 font-semibold text-on-surface">
+                      73.3% <span class="text-xs text-on-surface-variant font-normal">(11/15)</span>
+</span>
+</td>
+<td class="py-3.5 px-4 text-center">
+<span class="inline-flex items-center gap-0.5 text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
+                      4 <span class="material-symbols-outlined text-xs text-slate-500">local_fire_department</span>
+</span>
+</td>
+<td class="py-3.5 px-4 text-center font-mono text-xs text-on-surface">
+                    2.4s
+                  </td>
+<td class="py-3.5 px-4 text-right">
+<span class="font-code-num text-code-num font-bold text-primary">10,400</span>
+</td>
+</tr>
+<!-- Rank #7 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-3.5 px-4 text-center">
+<span class="w-7 h-7 inline-flex items-center justify-center rounded-full bg-surface-container font-code-num text-xs font-bold text-on-surface">#7</span>
+</td>
+<td class="py-3.5 px-4">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-full bg-secondary-fixed/50 border border-secondary-fixed-dim flex items-center justify-center font-bold text-secondary text-xs">
+                        RQ
+                      </div>
+<div>
+<div class="font-label-md text-label-md font-bold text-on-surface">ReactQueen</div>
+<span class="text-xs text-on-surface-variant font-mono">@anna_react</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4 text-center">
+<span class="inline-flex items-center gap-1 font-semibold text-on-surface">
+                      73.3% <span class="text-xs text-on-surface-variant font-normal">(11/15)</span>
+</span>
+</td>
+<td class="py-3.5 px-4 text-center">
+<span class="inline-flex items-center gap-0.5 text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
+                      5 <span class="material-symbols-outlined text-xs text-slate-500">local_fire_department</span>
+</span>
+</td>
+<td class="py-3.5 px-4 text-center font-mono text-xs text-on-surface">
+                    2.6s
+                  </td>
+<td class="py-3.5 px-4 text-right">
+<span class="font-code-num text-code-num font-bold text-primary">9,850</span>
+</td>
+</tr>
+<!-- Rank #8 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-3.5 px-4 text-center">
+<span class="w-7 h-7 inline-flex items-center justify-center rounded-full bg-surface-container font-code-num text-xs font-bold text-on-surface">#8</span>
+</td>
+<td class="py-3.5 px-4">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-full bg-amber-100 border border-amber-300 flex items-center justify-center font-bold text-amber-800 text-xs">
+                        WB
+                      </div>
+<div>
+<div class="font-label-md text-label-md font-bold text-on-surface">WorkerBee</div>
+<span class="text-xs text-on-surface-variant font-mono">@cf_worker</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4 text-center">
+<span class="inline-flex items-center gap-1 font-semibold text-on-surface">
+                      66.7% <span class="text-xs text-on-surface-variant font-normal">(10/15)</span>
+</span>
+</td>
+<td class="py-3.5 px-4 text-center">
+<span class="inline-flex items-center gap-0.5 text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
+                      3 <span class="material-symbols-outlined text-xs text-slate-500">local_fire_department</span>
+</span>
+</td>
+<td class="py-3.5 px-4 text-center font-mono text-xs text-on-surface">
+                    2.8s
+                  </td>
+<td class="py-3.5 px-4 text-right">
+<span class="font-code-num text-code-num font-bold text-primary">9,200</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Bottom Table Pagination / Showing All Notice -->
+<div class="p-3 bg-surface-container-low/60 border-t border-outline-variant/30 flex items-center justify-between text-xs text-on-surface-variant">
+<span>Showing top 8 of 24 total participants</span>
+<button class="font-label-sm text-label-sm text-primary hover:underline flex items-center gap-1">
+              View All 24 Players <span class="material-symbols-outlined text-xs">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- ================= RIGHT: TELEMETRY & QUESTION HIGHLIGHTS (4 Cols) ================= -->
+<div class="lg:col-span-4 flex flex-col gap-space-md">
+<!-- Live Arena Telemetry Card -->
+<div class="bg-surface-container-lowest border border-outline-variant/40 rounded-xl p-space-md shadow-sm">
+<div class="flex items-center justify-between border-b border-outline-variant/30 pb-space-sm mb-space-md">
+<span class="font-label-lg text-label-lg font-bold text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-xl">analytics</span>
+              Session Telemetry
+            </span>
+<span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-xs font-bold uppercase tracking-wider">
+              Completed
+            </span>
+</div>
+<!-- Metrics 2x2 Grid -->
+<div class="grid grid-cols-2 gap-space-sm mb-space-md">
+<div class="p-3 bg-surface-container-low rounded-lg border border-outline-variant/20">
+<span class="font-label-sm text-label-sm text-on-surface-variant block mb-1">Participants</span>
+<div class="flex items-baseline gap-1.5">
+<span class="font-headline-md text-headline-md font-bold text-on-surface">24</span>
+<span class="text-xs text-emerald-600 font-semibold flex items-center">
+<span class="material-symbols-outlined text-xs">arrow_upward</span>100%
+                </span>
+</div>
+<span class="text-[11px] text-on-surface-variant">0 drops during arena</span>
+</div>
+<div class="p-3 bg-surface-container-low rounded-lg border border-outline-variant/20">
+<span class="font-label-sm text-label-sm text-on-surface-variant block mb-1">Room Accuracy</span>
+<div class="flex items-baseline gap-1.5">
+<span class="font-headline-md text-headline-md font-bold text-primary">78.4%</span>
+</div>
+<span class="text-[11px] text-on-surface-variant">+6.2% vs benchmark</span>
+</div>
+<div class="p-3 bg-surface-container-low rounded-lg border border-outline-variant/20">
+<span class="font-label-sm text-label-sm text-on-surface-variant block mb-1">Avg Speed</span>
+<div class="flex items-baseline gap-1.5">
+<span class="font-headline-md text-headline-md font-bold text-on-surface">2.3s</span>
+</div>
+<span class="text-[11px] text-on-surface-variant">Per active question</span>
+</div>
+<div class="p-3 bg-surface-container-low rounded-lg border border-outline-variant/20">
+<span class="font-label-sm text-label-sm text-on-surface-variant block mb-1">Edge Latency</span>
+<div class="flex items-baseline gap-1.5">
+<span class="font-headline-md text-headline-md font-bold text-tertiary">18ms</span>
+</div>
+<span class="text-[11px] text-tertiary font-semibold">WebSockets synced</span>
+</div>
+</div>
+<!-- Highlight Badges: Speed Demon & Toughest Question -->
+<div class="flex flex-col gap-2.5">
+<!-- Speed Demon Award Card -->
+<div class="p-3 rounded-lg bg-surface border border-outline-variant/40 flex items-start gap-3">
+<div class="p-2 rounded-lg bg-primary-container/10 text-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">speed</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-primary uppercase font-bold">Speed Demon Award</span>
+<span class="font-mono text-xs font-bold text-primary">0.6s</span>
+</div>
+<p class="font-body-sm text-body-sm font-semibold text-on-surface">TurboJS (@turbo_v8)</p>
+<p class="text-xs text-on-surface-variant">Answered Q3 'V8 Event Loop' in record time.</p>
+</div>
+</div>
+<!-- Toughest Question Card -->
+<div class="p-3 rounded-lg bg-rose-50/60 border border-rose-200/80 flex items-start gap-3">
+<div class="p-2 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-xl">psychology_alt</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-rose-700 uppercase font-bold">Toughest Prompt</span>
+<span class="font-mono text-xs font-bold text-rose-700">32% Pass</span>
+</div>
+<p class="font-body-sm text-body-sm font-semibold text-rose-950">Q7: PACELC Theorem</p>
+<p class="text-xs text-rose-800/80">Only 8 of 24 players selected the correct latency tradeoff.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Host Quick Actions / Export Workspace -->
+<div class="bg-surface-container-lowest border border-outline-variant/40 rounded-xl p-space-md shadow-sm flex flex-col gap-3">
+<span class="font-label-md text-label-md font-bold text-on-surface">
+            Host Operations &amp; Next Steps
+          </span>
+<button class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg border border-outline-variant/50 hover:border-primary hover:bg-surface-container-low transition-colors text-left group">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">cloud_upload</span>
+<div>
+<span class="font-label-md text-label-md text-on-surface block leading-tight">Sync to Workspace</span>
+<span class="text-xs text-on-surface-variant">Save telemetry to enterprise team vault</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-primary transition-colors text-sm">chevron_right</span>
+</button>
+<button class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg border border-outline-variant/50 hover:border-primary hover:bg-surface-container-low transition-colors text-left group">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-tertiary group-hover:scale-110 transition-transform">table_chart</span>
+<div>
+<span class="font-label-md text-label-md text-on-surface block leading-tight">Export CSV / JSON</span>
+<span class="text-xs text-on-surface-variant">Question-by-question breakdown</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-tertiary transition-colors text-sm">chevron_right</span>
+</button>
+<button class="w-full mt-1 py-2.5 px-4 rounded-lg bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors font-label-md text-label-md flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-base">dashboard</span>
+<span>Return to Host Dashboard</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- FOOTER BRANDING (Minimal host note) -->
+<footer class="w-full border-t border-outline-variant/30 py-4 px-space-md text-center text-xs text-on-surface-variant">
+<p>QuizPlatform Real-Time Engine • Session #849-210 Concluded • Cloudflare Edge Architecture</p>
+</footer>
+<!-- Light Vanilla Script for Fanfare & Fullscreen Micro-Interactions -->
+<script>
+    // Fanfare audio toggle micro-interaction
+    const fanfareBtn = document.getElementById('fanfareBtn');
+    let isPlaying = true;
+    fanfareBtn.addEventListener('click', () => {
+      isPlaying = !isPlaying;
+      const icon = fanfareBtn.querySelector('span');
+      if (isPlaying) {
+        icon.textContent = 'volume_up';
+        fanfareBtn.classList.remove('text-outline');
+        fanfareBtn.classList.add('text-on-surface-variant');
+      } else {
+        icon.textContent = 'volume_off';
+        fanfareBtn.classList.add('text-outline');
+        fanfareBtn.classList.remove('text-on-surface-variant');
+      }
+    });
+
+    // Fullscreen toggle for Big-Screen / Projector View
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    fullscreenBtn.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        }
+      }
+    });
+  </script>
+</body></html>

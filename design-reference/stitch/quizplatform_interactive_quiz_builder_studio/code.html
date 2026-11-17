@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Interactive Quiz Builder Studio - QuizPlatform</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts: Plus Jakarta Sans & Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS with Forms & Container Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "error": "#ba1a1a",
+            "on-secondary-container": "#e9e5ff",
+            "primary": "#3e1ae8",
+            "on-primary": "#ffffff",
+            "surface-container": "#e5eeff",
+            "surface-container-high": "#dce9ff",
+            "surface-container-low": "#eff4ff",
+            "surface-variant": "#d3e4fe",
+            "on-tertiary": "#ffffff",
+            "on-error-container": "#93000a",
+            "surface-dim": "#cbdbf5",
+            "primary-fixed-dim": "#c5c0ff",
+            "on-surface": "#0b1c30",
+            "on-secondary": "#ffffff",
+            "inverse-primary": "#c5c0ff",
+            "on-tertiary-fixed": "#001f26",
+            "secondary": "#3f22e8",
+            "inverse-on-surface": "#eaf1ff",
+            "surface-container-highest": "#d3e4fe",
+            "on-primary-container": "#e5e1ff",
+            "tertiary-fixed-dim": "#4cd7f6",
+            "on-primary-fixed-variant": "#3600e1",
+            "tertiary": "#005665",
+            "surface-container-lowest": "#ffffff",
+            "error-container": "#ffdad6",
+            "background": "#f8f9ff",
+            "surface": "#f8f9ff",
+            "secondary-fixed-dim": "#c4c0ff",
+            "on-secondary-fixed-variant": "#3407df",
+            "secondary-container": "#5947ff",
+            "outline-variant": "#c8c4d9",
+            "inverse-surface": "#213145",
+            "outline": "#777588",
+            "primary-fixed": "#e3dfff",
+            "on-primary-fixed": "#130067",
+            "on-tertiary-fixed-variant": "#004e5c",
+            "surface-bright": "#f8f9ff",
+            "on-background": "#0b1c30",
+            "on-secondary-fixed": "#120068",
+            "surface-tint": "#5038f8",
+            "tertiary-fixed": "#acedff",
+            "secondary-fixed": "#e3dfff",
+            "primary-container": "#5842ff",
+            "on-error": "#ffffff",
+            "tertiary-container": "#007083",
+            "on-surface-variant": "#474556",
+            "on-tertiary-container": "#b3eeff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "margin": "2rem",
+            "gutter-mobile": "1rem",
+            "space-xs": "0.25rem",
+            "space-xl": "2.5rem",
+            "space-lg": "1.5rem",
+            "space-sm": "0.5rem",
+            "gutter": "1.5rem",
+            "margin-mobile": "1rem",
+            "space-md": "1rem"
+          },
+          "fontFamily": {
+            "display-xl": ["Plus Jakarta Sans"],
+            "headline-md": ["Plus Jakarta Sans"],
+            "body-lg": ["Inter"],
+            "body-sm": ["Inter"],
+            "label-lg": ["Plus Jakarta Sans"],
+            "headline-lg": ["Plus Jakarta Sans"],
+            "headline-lg-mobile": ["Plus Jakarta Sans"],
+            "label-sm": ["Plus Jakarta Sans"],
+            "body-md": ["Inter"],
+            "label-md": ["Plus Jakarta Sans"],
+            "headline-sm": ["Plus Jakarta Sans"],
+            "code-num": ["Inter"],
+            "display-xl-mobile": ["Plus Jakarta Sans"]
+          },
+          "fontSize": {
+            "display-xl": ["3.5rem", { "lineHeight": "4rem", "letterSpacing": "-0.03em", "fontWeight": "800" }],
+            "headline-md": ["1.5rem", { "lineHeight": "2rem", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "body-lg": ["1.125rem", { "lineHeight": "1.75rem", "fontWeight": "400" }],
+            "body-sm": ["0.875rem", { "lineHeight": "1.25rem", "fontWeight": "400" }],
+            "label-lg": ["1rem", { "lineHeight": "1.5rem", "letterSpacing": "0.01em", "fontWeight": "600" }],
+            "headline-lg": ["2.25rem", { "lineHeight": "2.75rem", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-lg-mobile": ["1.75rem", { "lineHeight": "2.25rem", "letterSpacing": "-0.015em", "fontWeight": "700" }],
+            "label-sm": ["0.75rem", { "lineHeight": "1rem", "letterSpacing": "0.04em", "fontWeight": "700" }],
+            "body-md": ["1rem", { "lineHeight": "1.5rem", "fontWeight": "400" }],
+            "label-md": ["0.875rem", { "lineHeight": "1.25rem", "letterSpacing": "0.005em", "fontWeight": "600" }],
+            "headline-sm": ["1.25rem", { "lineHeight": "1.75rem", "fontWeight": "600" }],
+            "code-num": ["1.125rem", { "lineHeight": "1.5rem", "letterSpacing": "0.05em", "fontWeight": "700" }],
+            "display-xl-mobile": ["2.25rem", { "lineHeight": "2.75rem", "letterSpacing": "-0.02em", "fontWeight": "800" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    /* Custom subtle scrollbar */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #c8c4d9;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #777588;
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface antialiased flex flex-col h-screen overflow-hidden select-none font-body-md text-body-md">
+<!-- TOP BAR: Product Anchor & Studio Context -->
+<header class="bg-surface-container-lowest/80 backdrop-blur-md border-b border-outline-variant/40 shadow-sm shrink-0 z-30 h-16 px-space-md flex items-center justify-between">
+<!-- Left: Brand + Breadcrumb Workspace Details -->
+<div class="flex items-center gap-space-md min-w-0">
+<!-- Logo Anchor -->
+<div class="flex items-center gap-space-xs shrink-0 cursor-pointer">
+<div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-on-primary shadow-sm shadow-primary/30">
+<span class="material-symbols-outlined text-[20px]" data-icon="bolt">bolt</span>
+</div>
+<span class="font-headline-md text-headline-md font-bold text-primary tracking-tight">QuizPlatform</span>
+</div>
+<div class="h-6 w-px bg-outline-variant/60 shrink-0"></div>
+<!-- Editable Title & Meta -->
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-space-xs">
+<h1 class="font-headline-sm text-headline-sm font-semibold truncate text-on-surface hover:text-primary transition-colors cursor-pointer group flex items-center gap-1.5" title="Click to rename quiz">
+<span>Full-Stack JavaScript &amp; Cloudflare Workers Arena</span>
+<span class="material-symbols-outlined text-[16px] text-outline opacity-0 group-hover:opacity-100 transition-opacity" data-icon="edit">edit</span>
+</h1>
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-label-sm bg-surface-container-high text-on-surface-variant font-medium shrink-0">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
+            Draft (Saved 2m ago)
+          </span>
+</div>
+<div class="flex items-center gap-space-md text-[12px] font-body-sm text-on-surface-variant">
+<span class="inline-flex items-center gap-1 text-primary font-medium">
+<span class="material-symbols-outlined text-[14px]" data-icon="folder_open">folder_open</span>
+            Question Bank: Web Engineering
+          </span>
+<span>•</span>
+<span class="font-code-num text-code-num text-xs font-semibold text-on-surface">15 Questions</span>
+<span>•</span>
+<span class="font-code-num text-code-num text-xs font-semibold text-on-surface">450s Total</span>
+<span>•</span>
+<span class="font-code-num text-code-num text-xs font-semibold text-on-surface">15,000 Max Pts</span>
+</div>
+</div>
+</div>
+<!-- Right: Studio Trailing Actions -->
+<div class="flex items-center gap-space-sm shrink-0">
+<button class="inline-flex items-center gap-1.5 px-space-md py-1.5 rounded-lg border border-outline-variant/60 bg-surface-container-lowest hover:bg-surface-container-low text-on-surface font-label-md text-label-md transition-colors active:scale-95 duration-100">
+<span class="material-symbols-outlined text-[18px] text-primary" data-icon="stay_current_portrait">stay_current_portrait</span>
+<span>Preview As Participant</span>
+</button>
+<button class="w-9 h-9 flex items-center justify-center rounded-lg border border-outline-variant/60 bg-surface-container-lowest hover:bg-surface-container-low text-on-surface-variant hover:text-on-surface transition-colors active:scale-95" title="Studio Settings">
+<span class="material-symbols-outlined text-[20px]" data-icon="settings">settings</span>
+</button>
+<div class="h-6 w-px bg-outline-variant/60 shrink-0 mx-0.5"></div>
+<button class="inline-flex items-center gap-2 px-space-lg py-2 rounded-lg bg-primary hover:bg-secondary text-on-primary font-label-md text-label-md font-semibold shadow-md shadow-primary/25 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[20px]" data-icon="cloud_done">cloud_done</span>
+<span>Save &amp; Ready to Host</span>
+</button>
+</div>
+</header>
+<!-- 3-COLUMN STUDIO WORKSPACE -->
+<main class="flex-1 flex overflow-hidden">
+<!-- COLUMN 1: LEFT SIDEBAR - Question Slides Timeline -->
+<section class="w-72 bg-surface-container-lowest border-r border-outline-variant/40 flex flex-col shrink-0">
+<!-- Sidebar Header Action Deck -->
+<div class="p-space-md border-b border-outline-variant/30 flex flex-col gap-space-xs bg-surface-container-lowest">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline font-bold">Quiz Outline (5)</span>
+<button class="text-xs text-primary font-label-md hover:underline flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[14px]" data-icon="tune">tune</span>
+            Reorder
+          </button>
+</div>
+<button class="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-primary/10 hover:bg-primary/15 text-primary font-label-md text-label-md transition-all active:scale-[0.99] border border-primary/20">
+<span class="material-symbols-outlined text-[18px]" data-icon="add_circle">add_circle</span>
+<span>+ Add Question</span>
+</button>
+<button class="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg bg-transparent hover:bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm transition-colors border border-dashed border-outline-variant">
+<span class="material-symbols-outlined text-[16px] text-tertiary-container" data-icon="dataset">dataset</span>
+<span>Import from Question Bank</span>
+</button>
+</div>
+<!-- Scrollable Thumbnail List -->
+<div class="flex-1 overflow-y-auto p-space-sm space-y-space-sm">
+<!-- Slide 1 (ACTIVE / SELECTED) -->
+<div class="relative group p-2.5 rounded-xl border-2 border-primary bg-surface-container-low/70 shadow-sm cursor-pointer transition-all">
+<div class="flex items-center justify-between mb-1.5">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px] text-outline cursor-grab" data-icon="drag_indicator">drag_indicator</span>
+<span class="font-label-md text-label-md font-bold text-primary">1. Multiple Choice</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="bg-primary/10 text-primary text-[10px] font-bold px-1.5 py-0.5 rounded-full">30s</span>
+<span class="bg-surface-container-highest text-on-surface text-[10px] font-semibold px-1.5 py-0.5 rounded-full">1,000 pts</span>
+</div>
+</div>
+<!-- Miniature Stage Preview Card -->
+<div class="bg-surface-container-lowest rounded-lg p-2 border border-outline-variant/50 shadow-inner">
+<p class="font-body-sm text-body-sm font-medium text-on-surface line-clamp-2 text-xs leading-snug">
+              What is the primary execution model of Cloudflare Workers isolates?
+            </p>
+<div class="grid grid-cols-2 gap-1 mt-2">
+<div class="h-3 rounded-sm bg-red-100 border border-red-300"></div>
+<div class="h-3 rounded-sm bg-blue-100 border border-blue-300"></div>
+<div class="h-3 rounded-sm bg-emerald-500 flex items-center justify-center text-white text-[8px]">
+<span class="material-symbols-outlined text-[10px]" data-icon="check">check</span>
+</div>
+<div class="h-3 rounded-sm bg-amber-100 border border-amber-300"></div>
+</div>
+</div>
+<div class="absolute -left-1 top-1/2 -translate-y-1/2 w-1.5 h-6 bg-primary rounded-r-full"></div>
+</div>
+<!-- Slide 2 -->
+<div class="p-2.5 rounded-xl border border-outline-variant/40 hover:border-outline bg-surface-container-lowest hover:bg-surface-container-lowest/90 cursor-pointer transition-all">
+<div class="flex items-center justify-between mb-1.5">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px] text-outline/60 cursor-grab" data-icon="drag_indicator">drag_indicator</span>
+<span class="font-label-md text-label-md font-medium text-on-surface">2. True / False</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="bg-surface-container text-on-surface-variant text-[10px] font-medium px-1.5 py-0.5 rounded-full">20s</span>
+<span class="bg-surface-container text-on-surface-variant text-[10px] font-medium px-1.5 py-0.5 rounded-full">1,000 pts</span>
+</div>
+</div>
+<div class="bg-surface-container-low rounded-lg p-2 border border-outline-variant/30">
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 text-xs leading-snug">
+              V8 isolates share memory between worker requests?
+            </p>
+<div class="grid grid-cols-2 gap-1 mt-2">
+<div class="h-3 rounded-sm bg-blue-100 border border-blue-200"></div>
+<div class="h-3 rounded-sm bg-red-400 flex items-center justify-center text-white text-[8px]">
+<span class="material-symbols-outlined text-[10px]" data-icon="check">check</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Slide 3 -->
+<div class="p-2.5 rounded-xl border border-outline-variant/40 hover:border-outline bg-surface-container-lowest hover:bg-surface-container-lowest/90 cursor-pointer transition-all">
+<div class="flex items-center justify-between mb-1.5">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px] text-outline/60 cursor-grab" data-icon="drag_indicator">drag_indicator</span>
+<span class="font-label-md text-label-md font-medium text-on-surface">3. Type Answer</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="bg-surface-container text-on-surface-variant text-[10px] font-medium px-1.5 py-0.5 rounded-full">45s</span>
+<span class="bg-surface-container text-on-surface-variant text-[10px] font-medium px-1.5 py-0.5 rounded-full">2,000 pts</span>
+</div>
+</div>
+<div class="bg-surface-container-low rounded-lg p-2 border border-outline-variant/30">
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 text-xs leading-snug">
+              Which header contains client IP on CF edge?
+            </p>
+<div class="mt-2 h-4 rounded bg-surface-container-highest flex items-center px-1.5 text-[9px] font-mono text-outline">
+              CF-Connecting-IP
+            </div>
+</div>
+</div>
+<!-- Slide 4 -->
+<div class="p-2.5 rounded-xl border border-outline-variant/40 hover:border-outline bg-surface-container-lowest hover:bg-surface-container-lowest/90 cursor-pointer transition-all">
+<div class="flex items-center justify-between mb-1.5">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px] text-outline/60 cursor-grab" data-icon="drag_indicator">drag_indicator</span>
+<span class="font-label-md text-label-md font-medium text-on-surface">4. Slider / Range</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="bg-surface-container text-on-surface-variant text-[10px] font-medium px-1.5 py-0.5 rounded-full">30s</span>
+<span class="bg-surface-container text-on-surface-variant text-[10px] font-medium px-1.5 py-0.5 rounded-full">1,000 pts</span>
+</div>
+</div>
+<div class="bg-surface-container-low rounded-lg p-2 border border-outline-variant/30">
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 text-xs leading-snug">
+              What is the default CPU execution limit in ms?
+            </p>
+<div class="mt-2 h-1.5 bg-outline-variant/40 rounded-full relative">
+<div class="w-3 h-3 rounded-full bg-primary absolute -top-0.75 left-1/3 -translate-x-1/2"></div>
+</div>
+</div>
+</div>
+<!-- Slide 5 -->
+<div class="p-2.5 rounded-xl border border-outline-variant/40 hover:border-outline bg-surface-container-lowest hover:bg-surface-container-lowest/90 cursor-pointer transition-all">
+<div class="flex items-center justify-between mb-1.5">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px] text-outline/60 cursor-grab" data-icon="drag_indicator">drag_indicator</span>
+<span class="font-label-md text-label-md font-medium text-on-surface">5. Multi-Select</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="bg-surface-container text-on-surface-variant text-[10px] font-medium px-1.5 py-0.5 rounded-full">45s</span>
+<span class="bg-surface-container text-on-surface-variant text-[10px] font-medium px-1.5 py-0.5 rounded-full">1,500 pts</span>
+</div>
+</div>
+<div class="bg-surface-container-low rounded-lg p-2 border border-outline-variant/30">
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 text-xs leading-snug">
+              Select all valid KV storage consistency models
+            </p>
+<div class="grid grid-cols-2 gap-1 mt-2">
+<div class="h-3 rounded-sm bg-emerald-500"></div>
+<div class="h-3 rounded-sm bg-emerald-500"></div>
+<div class="h-3 rounded-sm bg-red-200"></div>
+<div class="h-3 rounded-sm bg-amber-200"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Slide Quick Deck Footer Actions -->
+<div class="p-space-sm border-t border-outline-variant/30 bg-surface-container-low flex items-center justify-between text-on-surface-variant">
+<div class="flex items-center gap-1">
+<button class="p-1.5 rounded-lg hover:bg-surface-container hover:text-on-surface transition-colors" title="Duplicate Slide">
+<span class="material-symbols-outlined text-[18px]" data-icon="content_copy">content_copy</span>
+</button>
+<button class="p-1.5 rounded-lg hover:bg-surface-container hover:text-error transition-colors" title="Delete Slide">
+<span class="material-symbols-outlined text-[18px]" data-icon="delete">delete</span>
+</button>
+</div>
+<button class="flex items-center gap-1 text-xs font-label-md px-2 py-1 rounded hover:bg-surface-container text-on-surface font-semibold">
+<span class="material-symbols-outlined text-[16px]" data-icon="library_add_check">library_add_check</span>
+<span>Bulk Actions</span>
+</button>
+</div>
+</section>
+<!-- COLUMN 2: CENTER CANVAS - Question Stage & Interactive Editor -->
+<section class="flex-1 bg-background overflow-y-auto p-space-lg flex flex-col items-center">
+<div class="w-full max-w-4xl space-y-space-md">
+<!-- Top Type Selector Tabs -->
+<div class="bg-surface-container-lowest p-1.5 rounded-xl border border-outline-variant/40 shadow-sm flex items-center gap-1 overflow-x-auto">
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-on-primary font-label-md text-label-md font-semibold shadow-sm">
+<span class="material-symbols-outlined text-[18px]" data-icon="quiz">quiz</span>
+<span>Quiz (4-Choice)</span>
+</button>
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container font-label-md text-label-md transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="rule">rule</span>
+<span>True / False</span>
+</button>
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container font-label-md text-label-md transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="keyboard">keyboard</span>
+<span>Type In Answer</span>
+</button>
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container font-label-md text-label-md transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="linear_scale">linear_scale</span>
+<span>Slider / Numeric</span>
+</button>
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container font-label-md text-label-md transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="low_priority">low_priority</span>
+<span>Order / Sequence</span>
+</button>
+</div>
+<!-- Question Prompt Editor Card -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant/40 shadow-sm overflow-hidden focus-within:ring-2 focus-within:ring-primary focus-within:border-transparent transition-all">
+<!-- Text Formatting Toolbar -->
+<div class="px-space-md py-2 border-b border-outline-variant/30 bg-surface-container-low/50 flex items-center justify-between text-on-surface-variant">
+<div class="flex items-center gap-1">
+<button class="p-1 rounded hover:bg-surface-container font-bold text-xs w-7 h-7 flex items-center justify-center">B</button>
+<button class="p-1 rounded hover:bg-surface-container italic text-xs w-7 h-7 flex items-center justify-center">I</button>
+<button class="p-1 rounded hover:bg-surface-container underline text-xs w-7 h-7 flex items-center justify-center">U</button>
+<div class="h-4 w-px bg-outline-variant/60 mx-1"></div>
+<button class="p-1 rounded hover:bg-surface-container text-xs w-7 h-7 flex items-center justify-center font-mono" title="Code Format">&lt;/&gt;</button>
+<button class="p-1 rounded hover:bg-surface-container text-xs w-7 h-7 flex items-center justify-center" title="Math Formula">fx</button>
+<button class="p-1 rounded hover:bg-surface-container text-xs w-7 h-7 flex items-center justify-center" title="Superscript">x²</button>
+</div>
+<div class="flex items-center gap-2 text-xs font-label-sm">
+<span class="text-outline">Question 1 of 15</span>
+<span class="text-outline">•</span>
+<span class="font-code-num text-on-surface-variant font-semibold">68 / 150</span>
+</div>
+</div>
+<!-- Question Input Area -->
+<div class="p-space-md">
+<textarea class="w-full bg-transparent border-0 focus:ring-0 p-0 font-headline-md text-headline-md text-on-surface font-semibold placeholder:text-outline/60 resize-none leading-relaxed" placeholder="Type your live arena question here..." rows="2">What is the primary execution model of Cloudflare Workers isolates?</textarea>
+</div>
+</div>
+<!-- Media / Architecture Diagram Dropzone -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant/40 p-3 shadow-sm flex items-center gap-space-md">
+<div class="relative w-44 h-28 rounded-lg overflow-hidden border border-outline-variant shrink-0 bg-surface-container-high">
+<img class="w-full h-full object-cover" data-alt="A clean, minimalist vector architectural diagram showing Google V8 engine isolates isolated inside memory segments, rendered in a crisp enterprise SaaS design aesthetic with clean indigo and slate outlines on pure white background, digital schematic style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBNN-RwenjGTE-MQ53Vf2DM8DqF1O-9J8fDzHah3m_LTM4cROTMO-QglTwcm1UnaTVs608dMi8cX_jpK2cfZttSOQKT7aLxsQcdOB5Aw1o9bOEQMbd5_mHTjKS4xI3zIHzL2LFSykKbrnLGXB08pc-L18scuwJCk294ZXdCMr8f8CArXVD1WzakkqjD9hxAcoMkvGzJPAnRoWlG_tft87aZYhjNAebOF7k4L7jCi4FC"/>
+<div class="absolute bottom-1 right-1 bg-inverse-surface/80 text-inverse-on-surface px-1.5 py-0.5 rounded text-[10px] font-mono">SVG 42KB</div>
+</div>
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="material-symbols-outlined text-[18px] text-primary" data-icon="image">image</span>
+<span class="font-label-md text-label-md font-semibold text-on-surface">V8-Isolates-Architecture.svg</span>
+<span class="text-xs px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-medium">Uploaded</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-3">
+              Visible on large conference projector stage and participant devices during question countdown.
+            </p>
+<div class="flex items-center gap-2">
+<button class="inline-flex items-center gap-1 text-xs font-label-md px-2.5 py-1 rounded-md bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold transition-colors">
+<span class="material-symbols-outlined text-[14px]" data-icon="swap_horiz">swap_horiz</span>
+<span>Replace Image</span>
+</button>
+<button class="inline-flex items-center gap-1 text-xs font-label-md px-2.5 py-1 rounded-md bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold transition-colors">
+<span class="material-symbols-outlined text-[14px]" data-icon="code">code</span>
+<span>Add Code Snippet</span>
+</button>
+<button class="inline-flex items-center gap-1 text-xs font-label-md px-2 py-1 rounded-md hover:bg-error-container/40 text-error font-semibold transition-colors">
+<span class="material-symbols-outlined text-[14px]" data-icon="delete">delete</span>
+<span>Remove</span>
+</button>
+</div>
+</div>
+</div>
+<!-- 4-QUADRANT / MULTIPLAYER ANSWER MATRIX -->
+<div>
+<div class="flex items-center justify-between mb-2">
+<span class="font-label-md text-label-md font-bold text-on-surface flex items-center gap-1.5">
+<span>Answer Choices</span>
+<span class="text-xs font-normal text-on-surface-variant">(Mark at least one correct option)</span>
+</span>
+<div class="flex items-center gap-2">
+<span class="text-xs text-on-surface-variant font-label-sm">Single Choice</span>
+<div class="w-8 h-4 bg-primary rounded-full p-0.5 flex items-center justify-end cursor-pointer">
+<div class="w-3 h-3 bg-white rounded-full shadow-sm"></div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+<!-- OPTION A: RED (Triangle) -->
+<div class="group relative rounded-xl p-3 border-2 border-red-200 bg-white hover:border-red-500 shadow-sm transition-all focus-within:border-red-500">
+<div class="flex items-start gap-2.5">
+<div class="w-8 h-8 rounded-lg bg-red-500 flex items-center justify-center text-white shrink-0 shadow-sm">
+<span class="material-symbols-outlined text-[18px]" data-icon="change_history">change_history</span>
+</div>
+<div class="flex-1 min-w-0">
+<input class="w-full bg-transparent border-0 focus:ring-0 p-0 font-body-md text-body-md font-medium text-on-surface placeholder:text-outline/60" type="text" value="Full OS virtual machine containerization"/>
+</div>
+<!-- Correct Check Radio Trigger -->
+<button class="w-6 h-6 rounded-full border-2 border-outline-variant hover:border-red-500 flex items-center justify-center shrink-0 transition-colors" title="Mark as correct">
+</button>
+</div>
+<div class="mt-2 flex items-center justify-between text-[11px] text-outline">
+<span>Option A</span>
+<span class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 cursor-pointer hover:text-red-600">
+<span class="material-symbols-outlined text-[14px]" data-icon="add_photo_alternate">add_photo_alternate</span>
+                  Attach image
+                </span>
+</div>
+</div>
+<!-- OPTION B: BLUE (Diamond) -->
+<div class="group relative rounded-xl p-3 border-2 border-blue-200 bg-white hover:border-blue-500 shadow-sm transition-all focus-within:border-blue-500">
+<div class="flex items-start gap-2.5">
+<div class="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center text-white shrink-0 shadow-sm">
+<span class="material-symbols-outlined text-[18px]" data-icon="diamond">diamond</span>
+</div>
+<div class="flex-1 min-w-0">
+<input class="w-full bg-transparent border-0 focus:ring-0 p-0 font-body-md text-body-md font-medium text-on-surface placeholder:text-outline/60" type="text" value="Pre-forked Node.js child processes"/>
+</div>
+<button class="w-6 h-6 rounded-full border-2 border-outline-variant hover:border-blue-500 flex items-center justify-center shrink-0 transition-colors" title="Mark as correct">
+</button>
+</div>
+<div class="mt-2 flex items-center justify-between text-[11px] text-outline">
+<span>Option B</span>
+<span class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 cursor-pointer hover:text-blue-600">
+<span class="material-symbols-outlined text-[14px]" data-icon="add_photo_alternate">add_photo_alternate</span>
+                  Attach image
+                </span>
+</div>
+</div>
+<!-- OPTION C: EMERALD GREEN (Circle) - MARKED CORRECT -->
+<div class="group relative rounded-xl p-3 border-2 border-emerald-500 bg-emerald-50/40 shadow-md ring-2 ring-emerald-500/20 transition-all">
+<div class="flex items-start gap-2.5">
+<div class="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white shrink-0 shadow-sm">
+<span class="material-symbols-outlined text-[18px]" data-icon="circle">circle</span>
+</div>
+<div class="flex-1 min-w-0">
+<input class="w-full bg-transparent border-0 focus:ring-0 p-0 font-body-md text-body-md font-bold text-on-surface placeholder:text-outline/60" type="text" value="V8 Isolate engines running sandboxes"/>
+</div>
+<!-- Marked Active Button -->
+<button class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm" title="Marked as Correct Answer">
+<span class="material-symbols-outlined text-[16px] font-bold" data-icon="check">check</span>
+</button>
+</div>
+<div class="mt-2 flex items-center justify-between text-[11px]">
+<span class="inline-flex items-center gap-1 text-emerald-800 font-bold bg-emerald-100 px-1.5 py-0.5 rounded">
+<span class="material-symbols-outlined text-[12px]" data-icon="verified">verified</span>
+                  Correct Answer (Option C)
+                </span>
+<span class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 cursor-pointer text-emerald-700">
+<span class="material-symbols-outlined text-[14px]" data-icon="add_photo_alternate">add_photo_alternate</span>
+                  Attach image
+                </span>
+</div>
+</div>
+<!-- OPTION D: AMBER YELLOW (Square) -->
+<div class="group relative rounded-xl p-3 border-2 border-amber-200 bg-white hover:border-amber-500 shadow-sm transition-all focus-within:border-amber-500">
+<div class="flex items-start gap-2.5">
+<div class="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center text-white shrink-0 shadow-sm">
+<span class="material-symbols-outlined text-[18px]" data-icon="square">square</span>
+</div>
+<div class="flex-1 min-w-0">
+<input class="w-full bg-transparent border-0 focus:ring-0 p-0 font-body-md text-body-md font-medium text-on-surface placeholder:text-outline/60" type="text" value="Shared multi-tenant WebAssembly hosts"/>
+</div>
+<button class="w-6 h-6 rounded-full border-2 border-outline-variant hover:border-amber-500 flex items-center justify-center shrink-0 transition-colors" title="Mark as correct">
+</button>
+</div>
+<div class="mt-2 flex items-center justify-between text-[11px] text-outline">
+<span>Option D</span>
+<span class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 cursor-pointer hover:text-amber-600">
+<span class="material-symbols-outlined text-[14px]" data-icon="add_photo_alternate">add_photo_alternate</span>
+                  Attach image
+                </span>
+</div>
+</div>
+</div>
+</div>
+<!-- Explanation & Hints Accordion Card -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant/40 p-space-md shadow-sm">
+<div class="flex items-center justify-between cursor-pointer">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px] text-primary" data-icon="lightbulb">lightbulb</span>
+<span class="font-label-md text-label-md font-semibold text-on-surface">Answer Explanation &amp; Keynote Host Notes</span>
+</div>
+<span class="material-symbols-outlined text-[18px] text-outline" data-icon="expand_less">expand_less</span>
+</div>
+<div class="mt-3">
+<textarea class="w-full text-xs font-body-sm text-on-surface-variant bg-surface-container-low rounded-lg p-2.5 border border-outline-variant/40 focus:ring-1 focus:ring-primary focus:border-primary resize-none leading-relaxed" rows="2">Workers run within isolated V8 engine contexts without container overhead, reducing cold starts from hundreds of milliseconds down to under 5ms worldwide.</textarea>
+</div>
+</div>
+</div>
+</section>
+<!-- COLUMN 3: RIGHT INSPECTOR - Slide Configuration & Scoring Deck -->
+<aside class="w-80 bg-surface-container-lowest border-l border-outline-variant/40 flex flex-col shrink-0 overflow-y-auto">
+<!-- Panel Header -->
+<div class="p-space-md border-b border-outline-variant/30 flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-on-surface flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-primary" data-icon="tune">tune</span>
+          Slide Settings
+        </span>
+<span class="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary font-bold">Q1 Active</span>
+</div>
+<div class="p-space-md space-y-space-lg">
+<!-- Setting 1: Time Limit Selector -->
+<div>
+<label class="block font-label-md text-label-md font-semibold text-on-surface mb-2">Time Limit</label>
+<div class="grid grid-cols-4 gap-1.5">
+<button class="py-1.5 px-2 rounded-lg border border-outline-variant/60 text-xs font-label-sm font-semibold hover:border-primary text-on-surface transition-colors">10s</button>
+<button class="py-1.5 px-2 rounded-lg border border-outline-variant/60 text-xs font-label-sm font-semibold hover:border-primary text-on-surface transition-colors">20s</button>
+<button class="py-1.5 px-2 rounded-lg bg-primary text-on-primary text-xs font-label-sm font-bold shadow-sm">30s</button>
+<button class="py-1.5 px-2 rounded-lg border border-outline-variant/60 text-xs font-label-sm font-semibold hover:border-primary text-on-surface transition-colors">45s</button>
+<button class="py-1.5 px-2 rounded-lg border border-outline-variant/60 text-xs font-label-sm font-semibold hover:border-primary text-on-surface transition-colors">60s</button>
+<button class="py-1.5 px-2 rounded-lg border border-outline-variant/60 text-xs font-label-sm font-semibold hover:border-primary text-on-surface transition-colors">90s</button>
+<button class="col-span-2 py-1.5 px-2 rounded-lg border border-dashed border-outline-variant text-xs font-label-sm text-outline hover:text-on-surface transition-colors">Custom Limit...</button>
+</div>
+</div>
+<!-- Setting 2: Points Multiplier -->
+<div>
+<label class="block font-label-md text-label-md font-semibold text-on-surface mb-2">Points Multiplier</label>
+<div class="space-y-1.5">
+<label class="flex items-center justify-between p-2 rounded-lg border-2 border-primary bg-primary/5 cursor-pointer">
+<div class="flex items-center gap-2">
+<span class="w-3.5 h-3.5 rounded-full border-4 border-primary bg-white"></span>
+<span class="text-xs font-label-md font-bold text-on-surface">Standard</span>
+</div>
+<span class="font-code-num text-xs font-bold text-primary">1,000 pts</span>
+</label>
+<label class="flex items-center justify-between p-2 rounded-lg border border-outline-variant/50 hover:bg-surface-container-low cursor-pointer transition-colors">
+<div class="flex items-center gap-2">
+<span class="w-3.5 h-3.5 rounded-full border border-outline"></span>
+<span class="text-xs font-label-md font-medium text-on-surface">Double Points</span>
+</div>
+<span class="font-code-num text-xs font-semibold text-outline">2,000 pts</span>
+</label>
+<label class="flex items-center justify-between p-2 rounded-lg border border-outline-variant/50 hover:bg-surface-container-low cursor-pointer transition-colors">
+<div class="flex items-center gap-2">
+<span class="w-3.5 h-3.5 rounded-full border border-outline"></span>
+<span class="text-xs font-label-md font-medium text-on-surface">No Points (Warmup)</span>
+</div>
+<span class="font-code-num text-xs font-semibold text-outline">0 pts</span>
+</label>
+</div>
+</div>
+<!-- Setting 3: Live Scoring Bonuses & Toggles -->
+<div class="pt-2 border-t border-outline-variant/30 space-y-3">
+<div class="flex items-center justify-between">
+<div>
+<span class="block text-xs font-label-md font-semibold text-on-surface">Speed Bonus</span>
+<span class="text-[11px] text-outline">Extra points for sub-2s response</span>
+</div>
+<div class="w-8 h-4 bg-primary rounded-full p-0.5 flex items-center justify-end cursor-pointer">
+<div class="w-3 h-3 bg-white rounded-full"></div>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<div>
+<span class="block text-xs font-label-md font-semibold text-on-surface">Randomize Choices</span>
+<span class="text-[11px] text-outline">Shuffle cards for each player</span>
+</div>
+<div class="w-8 h-4 bg-outline-variant/60 rounded-full p-0.5 flex items-center justify-start cursor-pointer">
+<div class="w-3 h-3 bg-white rounded-full"></div>
+</div>
+</div>
+</div>
+<!-- AI Assistant / Co-Pilot Bento Card -->
+<div class="rounded-xl p-3.5 bg-gradient-to-br from-primary/10 via-surface-container-lowest to-tertiary-fixed/20 border border-primary/25 shadow-sm">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-[18px] text-primary" data-icon="auto_awesome">auto_awesome</span>
+<span class="font-label-md text-label-md font-bold text-primary">AI Question Co-Pilot</span>
+</div>
+<p class="text-xs text-on-surface-variant mb-3 leading-relaxed">
+            Enhance distractor answers, optimize difficulty, or synthesize related coding queries.
+          </p>
+<div class="space-y-1.5">
+<button class="w-full text-left px-2.5 py-1.5 rounded-lg bg-surface-container-lowest hover:bg-white text-xs font-label-sm font-semibold text-on-surface border border-outline-variant/50 flex items-center justify-between transition-colors shadow-2xs">
+<span>Generate Distractor Answers</span>
+<span class="material-symbols-outlined text-[14px] text-primary" data-icon="arrow_forward">arrow_forward</span>
+</button>
+<button class="w-full text-left px-2.5 py-1.5 rounded-lg bg-surface-container-lowest hover:bg-white text-xs font-label-sm font-semibold text-on-surface border border-outline-variant/50 flex items-center justify-between transition-colors shadow-2xs">
+<span>Adjust Difficulty (Hard)</span>
+<span class="material-symbols-outlined text-[14px] text-primary" data-icon="speed">speed</span>
+</button>
+</div>
+</div>
+<!-- Live Mobile Mini-Preview Deck -->
+<div>
+<div class="flex items-center justify-between mb-2">
+<label class="font-label-md text-label-md font-semibold text-on-surface flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-outline" data-icon="smartphone">smartphone</span>
+<span>Handheld Player View</span>
+</label>
+<span class="text-[10px] font-mono text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+              Live Sync (18ms)
+            </span>
+</div>
+<!-- Smartphone Shell Prototype -->
+<div class="mx-auto w-52 rounded-2xl border-4 border-inverse-surface bg-surface-container-lowest p-2 shadow-lg relative overflow-hidden">
+<!-- Mobile Top Notch -->
+<div class="w-16 h-2.5 bg-inverse-surface rounded-full mx-auto mb-2"></div>
+<!-- Mobile Screen Canvas -->
+<div class="space-y-1.5 text-center">
+<div class="flex items-center justify-between px-1">
+<span class="text-[9px] font-bold text-primary">SarahCoder</span>
+<span class="text-[9px] font-mono bg-red-100 text-red-700 px-1 rounded-full font-bold">28s</span>
+</div>
+<div class="bg-surface-container-high rounded p-1 text-[8px] font-bold text-on-surface line-clamp-2">
+                What is the primary execution model of CF Workers isolates?
+              </div>
+<!-- 4 Touch Blocks (Participant controller) -->
+<div class="grid grid-cols-2 gap-1 pt-1">
+<div class="h-10 rounded-lg bg-red-500 shadow-sm flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-[14px]" data-icon="change_history">change_history</span>
+</div>
+<div class="h-10 rounded-lg bg-blue-500 shadow-sm flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-[14px]" data-icon="diamond">diamond</span>
+</div>
+<div class="h-10 rounded-lg bg-emerald-500 shadow-sm flex items-center justify-center text-white ring-1 ring-white">
+<span class="material-symbols-outlined text-[14px]" data-icon="circle">circle</span>
+</div>
+<div class="h-10 rounded-lg bg-amber-500 shadow-sm flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-[14px]" data-icon="square">square</span>
+</div>
+</div>
+<p class="text-[7px] text-outline font-medium pt-1">Tap matching color on device</p>
+</div>
+</div>
+</div>
+</div>
+</aside>
+</main>
+</body></html>

@@ -1,22 +1,44 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --color-background: 240 240 244;
-  --color-foreground: 16 16 20;
-  --color-primary: 63 66 215;
-  --color-primary-foreground: 255 255 255;
-  --color-accent: 255 149 0;
-  --color-accent-foreground: 16 16 20;
-  --color-muted: 152 152 160;
+  --color-background: 248 249 255;
+  --color-foreground: 11 28 48;
+  --color-primary: 88 66 255;
+  --color-primary-dark: 67 41 235;
   --color-card: 255 255 255;
+  --color-border: 226 232 240;
 }
 
 body {
   margin: 0;
   padding: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background-color: #f8fafc;
-  color: #0f172a;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: #f8f9ff;
+  color: #0b1c30;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6, .font-display {
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.tactile-press {
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.tactile-press:active {
+  transform: translateY(3px);
+  box-shadow: none !important;
 }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { LogIn, Users } from "lucide-react";
+import { LogIn, Sparkles, ArrowRight, ShieldCheck, Zap } from "lucide-react";
 
 function JoinForm() {
   const router = useRouter();
@@ -61,75 +61,113 @@ function JoinForm() {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-12 bg-white rounded-2xl shadow-md border border-slate-200 p-8">
-      <div className="text-center mb-6">
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-indigo-100 text-indigo-600 mb-3 shadow-xs">
-          <Users className="w-7 h-7" />
+    <div className="w-full max-w-md mx-auto my-8 sm:my-14">
+      {/* Decorative Brand Accent Pill */}
+      <div className="flex justify-center mb-6">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-50 border border-brand-200/60 shadow-xs">
+          <Zap className="w-3.5 h-3.5 text-brand-600 fill-brand-600 animate-pulse" />
+          <span className="text-xs font-bold uppercase tracking-wider text-brand-700">
+            Participant Arena
+          </span>
         </div>
-        <h1 className="text-2xl font-bold text-slate-800">Join Live Quiz</h1>
-        <p className="text-sm text-slate-500 mt-1">
-          Enter the 6-digit room PIN from your host to get started.
-        </p>
       </div>
 
-      {error && (
-        <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">
-          {error}
-        </div>
-      )}
+      <div className="bg-white rounded-3xl shadow-elevated border border-surface-border p-7 sm:p-9 relative overflow-hidden">
+        {/* Subtle top glow line */}
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-brand-600 via-brand-500 to-indigo-400" />
 
-      <form onSubmit={handleJoin} className="space-y-4">
-        <div>
-          <label htmlFor="pin" className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">
-            Game PIN
-          </label>
-          <input
-            id="pin"
-            type="text"
-            maxLength={6}
-            value={pin}
-            onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
-            placeholder="123456"
-            className="w-full text-center text-3xl font-mono tracking-widest px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-black text-slate-900"
-            required
-            autoFocus={!paramPin}
-          />
+        <div className="text-center mb-8">
+          <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-slate-900 tracking-tight">
+            Enter Live Arena
+          </h1>
+          <p className="text-sm text-slate-500 mt-2">
+            Enter your 6-digit session PIN and choose a nickname to compete in real-time.
+          </p>
         </div>
 
-        <div>
-          <label htmlFor="nickname" className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">
-            Your Nickname
-          </label>
-          <input
-            id="nickname"
-            type="text"
-            maxLength={20}
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-            placeholder="e.g. Alex"
-            className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-base font-medium"
-            required
-            autoFocus={Boolean(paramPin)}
-          />
-        </div>
+        {error && (
+          <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200/80 text-red-700 text-sm flex items-start gap-3 animate-shake">
+            <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center shrink-0 mt-0.5">
+              <span className="text-xs font-bold text-red-600">!</span>
+            </div>
+            <div className="font-medium">{error}</div>
+          </div>
+        )}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition disabled:opacity-50 text-base"
-        >
-          <LogIn className="w-5 h-5" />
-          <span>{loading ? "Joining..." : "Join Game"}</span>
-        </button>
-      </form>
+        <form onSubmit={handleJoin} className="space-y-5">
+          <div>
+            <label
+              htmlFor="pin"
+              className="block font-display text-xs font-bold uppercase tracking-wider text-slate-700 mb-2"
+            >
+              Session Game PIN
+            </label>
+            <div className="relative">
+              <input
+                id="pin"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={6}
+                value={pin}
+                onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                placeholder="000 000"
+                className="w-full text-center text-3xl sm:text-4xl font-mono font-black tracking-[0.25em] px-4 py-3.5 bg-slate-50/70 border border-slate-300 rounded-2xl focus:bg-white focus:outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 text-slate-900 transition-all placeholder:text-slate-300 placeholder:tracking-widest"
+                required
+                autoFocus={!paramPin}
+              />
+            </div>
+          </div>
 
-      <div className="mt-8 pt-6 border-t border-slate-100 text-center">
-        <p className="text-sm text-slate-500">
-          Want to host your own quiz?{" "}
-          <a href="/host" className="text-indigo-600 font-semibold hover:underline">
-            Go to Host Dashboard
+          <div>
+            <label
+              htmlFor="nickname"
+              className="block font-display text-xs font-bold uppercase tracking-wider text-slate-700 mb-2"
+            >
+              Your Player Nickname
+            </label>
+            <input
+              id="nickname"
+              type="text"
+              maxLength={20}
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              placeholder="e.g. Maverick, Sarah K."
+              className="w-full px-4 py-3.5 bg-slate-50/70 border border-slate-300 rounded-2xl focus:bg-white focus:outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 text-base font-semibold text-slate-900 transition-all placeholder:text-slate-400"
+              required
+              autoFocus={Boolean(paramPin)}
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full mt-2 tactile-press bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white font-display font-bold py-4 px-6 rounded-2xl flex items-center justify-center gap-2.5 shadow-tactile-brand transition-all disabled:opacity-50 text-base"
+          >
+            {loading ? (
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <>
+                <LogIn className="w-5 h-5" />
+                <span>Join Arena</span>
+                <ArrowRight className="w-4 h-4 opacity-75" />
+              </>
+            )}
+          </button>
+        </form>
+
+        <div className="mt-8 pt-6 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+          <div className="flex items-center gap-1.5 text-slate-400">
+            <ShieldCheck className="w-4 h-4 text-emerald-500" />
+            <span>Low-latency edge sync</span>
+          </div>
+          <a
+            href="/host"
+            className="font-semibold text-brand-600 hover:text-brand-700 hover:underline transition-colors"
+          >
+            Host a Quiz →
           </a>
-        </p>
+        </div>
       </div>
     </div>
   );
@@ -137,7 +175,13 @@ function JoinForm() {
 
 export default function JoinPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-slate-400">Loading join screen...</div>}>
+    <Suspense
+      fallback={
+        <div className="max-w-md mx-auto my-12 p-8 text-center text-slate-400 bg-white rounded-2xl border border-surface-border">
+          Loading join screen...
+        </div>
+      }
+    >
       <JoinForm />
     </Suspense>
   );
